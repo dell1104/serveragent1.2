@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcripción de Audio - Sistema Forense</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_modern.css') }}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}}">
+    <style>
+        .audio-menu-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .menu-title {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+        }
+        
+        .audio-options {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+        
+        .audio-option {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 3px solid transparent;
+        }
+        
+        .audio-option:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            border-color: #3498db;
+        }
+        
+        .audio-option.common {
+            border-color: #e74c3c;
+        }
+        
+        .audio-option.whatsapp {
+            border-color: #27ae60;
+        }
+        
+        .option-icon {
+            font-size: 4em;
+            margin-bottom: 20px;
+            display: block;
+        }
+        
+        .option-title {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #2c3e50;
+        }
+        
+        .option-description {
+            color: #7f8c8d;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .option-features {
+            text-align: left;
+            color: #34495e;
+            font-size: 0.95em;
+        }
+        
+        .option-features ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .option-features li {
+            padding: 5px 0;
+            position: relative;
+            padding-left: 25px;
+        }
+        
+        .option-features li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #27ae60;
+            font-weight: bold;
+        }
+        
+        .back-button {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .btn-back {
+            background: #95a5a6;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 25px;
+            text-decoration: none;
+            font-size: 1.1em;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-back:hover {
+            background: #7f8c8d;
+            transform: translateY(-2px);
+        }
+        
+        @media (max-width: 768px) {
+            .audio-options {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .audio-option {
+                padding: 30px 20px;
+            }
+            
+            .menu-title {
+                font-size: 2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="audio-menu-container">
+            <h1 class="menu-title">🎵 Transcripción de Audio</h1>
+            
+            <div class="audio-options">
+                <!-- Audio Común -->
+                <div class="audio-option common" onclick="window.location.href='{{ url_for('transcripcion.audio_comun') }}'">
+                    <span class="option-icon">🎤</span>
+                    <h2 class="option-title">Audio Común</h2>
+                    <p class="option-description">
+                        Transcribe archivos de audio de cualquier origen para análisis forense general.
+                    </p>
+                    <div class="option-features">
+                        <ul>
+                            <li>Transcripción individual o en lote</li>
+                            <li>Verificación y edición de transcripciones</li>
+                            <li>Cálculo automático de hashes SHA256</li>
+                            <li>Exportación de resultados</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- Audio WhatsApp -->
+                <div class="audio-option whatsapp" onclick="window.location.href='{{ url_for('transcripcion.audio_whatsapp') }}'">
+                    <span class="option-icon">📱</span>
+                    <h2 class="option-title">Audio WhatsApp</h2>
+                    <p class="option-description">
+                        Transcribe audios de WhatsApp e integra las transcripciones en el chat exportado.
+                    </p>
+                    <div class="option-features">
+                        <ul>
+                            <li>Transcripción de audios de WhatsApp</li>
+                            <li>Integración automática en chat</li>
+                            <li>Verificación y edición</li>
+                            <li>Descarga de chat modificado</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="back-button">
+                <a href="{{ url_for('index') }}" class="btn-back">← Volver al Menú Principal</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

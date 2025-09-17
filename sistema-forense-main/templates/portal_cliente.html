@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Portal de Evidencia</title>
+    <!-- CSS de Bootstrap y nuestros estilos personalizados -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_modern.css') }}}">
+    <style>
+        /* Estilos menores específicos para esta página */
+        .hash-code { font-family: monospace; word-break: break-all; font-size: 0.8rem; }
+        .miniatura { width: 100px; height: 100px; object-fit: cover; cursor: pointer; border: 1px solid #ddd; border-radius: 8px; }
+        
+        /* Estilos para evitar conflictos con el modal */
+        .modal-backdrop {
+            z-index: 1040 !important;
+        }
+        
+        #visorModal {
+            z-index: 1050 !important;
+        }
+        
+        .modal-dialog {
+            z-index: 1051 !important;
+        }
+        
+        /* Asegurar que el modal sea interactivo */
+        .modal.show {
+            display: block !important;
+        }
+        
+        .modal-content {
+            pointer-events: auto !important;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container my-4">
+        <div class="card p-4 text-center">
+            <h1 class="mb-1">📤 Portal de Entrega de Evidencia</h1>
+            <h4 class="text-muted mb-3">Caso: {{ caso.nombre_caso }}</h4>
+            <p class="mb-0">Expediente: {{ caso.expediente }}</p>
+        </div>
+
+        <div class="card p-4 my-4">
+            <h5 class="card-title">Subir Nuevos Archivos</h5>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <input type="file" class="form-control" name="archivos" multiple required />
+                </div>
+                <button type="submit" class="btn btn-primary w-100">Subir Archivos</button>
+            </form>
+        </div>
+
+        <!-- Sección de Firma Digital -->
+        <div class="card p-4 my-4">
+            <h5 class="card-title">✍️ Firma Digital</h5>
+            <div id="firma-section">
+                <!-- Estado inicial: Solo botón para requerir firma -->
+                <div id="firma-inicial">
+                    <p class="mb-3">Para completar el proceso, debe solicitar y completar la firma digital.</p>
+                    <button type="button" class="btn btn-primary w-100" onclick="requerirFirma()">
+                        🔐 Requerir Firma Digital
+                    </button>
+                </div>
+                
+                <!-- Estado pendiente: Botón para firmar -->
+                <div id="firma-pending" style="display: none;">
+                    <div class="alert alert-info">
+                        <h6>📋 Firma Solicitada</h6>
+                        <p class="mb-3">La firma digital ha sido solicitada. Ahora debe completarla.</p>
+                        <button type="button" class="btn btn-success w-100" onclick="abrirPanelFirma()">
+                            ✍️ Firmar Ahora
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Estado completado: Firma recibida -->
+                <div id="firma-completed" style="display: none;">
+                    <div class="alert alert-success">
+                        <h6>✅ Firma Completada</h6>
+                        <p class="mb-2">La firma digital ha sido recibida exitosamente.</p>
+                        <div id="firma-preview" class="text-center mt-3"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <hr />
+        
+        <h3 class="mt-4">📂 Archivos Enviados</h3>
+        {% if archivos %}
+            <div class="row">
+            {% for archivo in archivos %}
+                <div class="col-12 col-md-6 col-lg-4 mb-4">
+                    <div class="card h-100 text-center">
+                        <div class="card-body d-flex flex-column">
+                            <h5 class="card-title mb-3">{{ get_file_icon(archivo.nombre) }} {{ archivo.nombre }}</h5>
+                            
+                            <!-- Botón/Imagen para el modal -->
+                            <div class="mb-3">
+                                {% if archivo.nombre.lower().endswith(('jpg', 'jpeg', 'png', 'gif', 'webp')) %}
+                                    <img src="{{ url_for('casos.servir_archivo_evidencia', sesion_id=sesion_id, filename=archivo.nombre) }}" class="miniatura"
+                                         data-bs-toggle="modal" data-bs-target="#visorModal"
+                                         data-archivo="{{ archivo.nombre }}" data-tipo="imagen">
+                                {% else %}
+                                    <button class="btn btn-info btn-sm" data-bs-toggle="modal" data-bs-target="#visorModal"
+                                            data-archivo="{{ archivo.nombre }}" data-tipo="otro">
+                                      Ver / Descargar
+                                    </button>
+                                {% endif %}
+                            </div>
+
+                            <p class="hash-code mt-auto"><b>SHA-256:</b><br>{{ archivo.hash }}</p>
+                            
+                            <button class="btn btn-danger btn-sm mt-2" onclick="eliminarArchivo('{{ archivo.nombre }}')">Eliminar</button>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+            </div>
+        {% else %}
+            <p class="text-center text-muted mt-4">Aún no se han subido archivos para este caso.</p>
+        {% endif %}
+    </div>
+
+    <!-- Modal para visualización -->
+    <div class="modal fade" id="visorModal" tabindex="-1" aria-hidden="true" style="z-index: 1050;">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="visorModalLabel">Visor de Archivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center" id="contenidoModal">Cargando...</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Firma Digital -->
+    <div class="modal fade" id="firmaModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">✍️ Firma Digital</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="text-center mb-3">
+                        <p class="text-muted">Firme en el recuadro de abajo</p>
+                    </div>
+                    
+                    <div class="text-center mb-3">
+                        <canvas id="signaturePad" style="border: 2px solid #ccc; border-radius: 5px; cursor: crosshair; width: 100%; height: 250px;"></canvas>
+                    </div>
+                    
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-warning" id="clearSignature">
+                            🗑️ Limpiar Firma
+                        </button>
+                        <button type="button" class="btn btn-success" id="sendSignature">
+                            ✍️ Enviar Firma
+                        </button>
+                    </div>
+                    
+                    <div id="firmaMessage" class="text-center mt-3" style="min-height: 20px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts de Bootstrap y lógica de la página -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        const visorModal = document.getElementById('visorModal');
+
+        visorModal.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget;
+            const filename = button.getAttribute('data-archivo');
+            const modalBody = document.getElementById('contenidoModal');
+            const modalTitle = document.getElementById('visorModalLabel');
+            
+            modalTitle.textContent = `Visor: ${filename}`;
+            const fileUrl = `/casos_data/{{ sesion_id }}/${encodeURIComponent(filename)}`;
+            const fileExt = filename.split('.').pop().toLowerCase();
+            let htmlContent = '';
+
+            // Mostrar loading mientras carga
+            modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2">Cargando archivo...</p></div>';
+
+            // Crear el contenido según el tipo de archivo
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+                const img = new Image();
+                img.onload = function() {
+                    modalBody.innerHTML = `
+                        <div class="text-center">
+                            <img src="${fileUrl}" class="img-fluid rounded" style="max-height: 70vh;" alt="${filename}">
+                            <div class="mt-3">
+                                <a href="${fileUrl}" class="btn btn-primary" download>Descargar Imagen</a>
+                                <a href="${fileUrl}" class="btn btn-secondary" target="_blank">Abrir en Nueva Pestaña</a>
+                            </div>
+                        </div>`;
+                };
+                img.onerror = function() {
+                    modalBody.innerHTML = `
+                        <div class="text-center">
+                            <p class="text-danger">Error al cargar la imagen.</p>
+                            <a href="${fileUrl}" class="btn btn-primary" download>Descargar Archivo</a>
+                            <a href="${fileUrl}" class="btn btn-secondary" target="_blank">Abrir en Nueva Pestaña</a>
+                        </div>`;
+                };
+                img.src = fileUrl;
+            } else if (['mp4', 'webm', 'mov'].includes(fileExt)) {
+                htmlContent = `
+                    <div class="text-center">
+                        <video src="${fileUrl}" controls class="w-100 rounded" style="max-height: 70vh;"></video>
+                        <div class="mt-3">
+                            <a href="${fileUrl}" class="btn btn-primary" download>Descargar Video</a>
+                            <a href="${fileUrl}" class="btn btn-secondary" target="_blank">Abrir en Nueva Pestaña</a>
+                        </div>
+                    </div>`;
+                modalBody.innerHTML = htmlContent;
+            } else if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
+                htmlContent = `
+                    <div class="text-center">
+                        <audio src="${fileUrl}" controls class="w-100"></audio>
+                        <div class="mt-3">
+                            <a href="${fileUrl}" class="btn btn-primary" download>Descargar Audio</a>
+                            <a href="${fileUrl}" class="btn btn-secondary" target="_blank">Abrir en Nueva Pestaña</a>
+                        </div>
+                    </div>`;
+                modalBody.innerHTML = htmlContent;
+            } else if (fileExt === 'pdf') {
+                htmlContent = `
+                    <div class="text-center">
+                        <iframe src="${fileUrl}" class="w-100" style="height: 70vh;" frameborder="0"></iframe>
+                        <div class="mt-3">
+                            <a href="${fileUrl}" class="btn btn-primary" download>Descargar PDF</a>
+                            <a href="${fileUrl}" class="btn btn-secondary" target="_blank">Abrir en Nueva Pestaña</a>
+                        </div>
+                    </div>`;
+                modalBody.innerHTML = htmlContent;
+            } else {
+                htmlContent = `
+                    <div class="text-center">
+                        <p class="mb-3">No hay previsualización disponible para este tipo de archivo.</p>
+                        <div class="d-flex justify-content-center gap-2">
+                            <a href="${fileUrl}" class="btn btn-primary" download>Descargar Archivo</a>
+                            <a href="${fileUrl}" class="btn btn-secondary" target="_blank">Abrir en Nueva Pestaña</a>
+                        </div>
+                    </div>`;
+                modalBody.innerHTML = htmlContent;
+            }
+        });
+
+        visorModal.addEventListener('hidden.bs.modal', function () {
+            const modalBody = document.getElementById('contenidoModal');
+            const media = modalBody.querySelector('video, audio');
+            if (media) {
+                media.pause();
+                media.currentTime = 0; // Reiniciar al inicio
+            }
+            modalBody.innerHTML = '<div class="text-center"><div class="spinner-border" role="status"><span class="visually-hidden">Cargando...</span></div><p class="mt-2">Cargando...</p></div>';
+        });
+
+        async function eliminarArchivo(filename) {
+            if (!confirm(`¿Está seguro de que desea eliminar el archivo "${filename}"? Esta acción no se puede deshacer.`)) {
+                return;
+            }
+            try {
+                const response = await fetch(`/api/eliminar/{{ sesion_id }}/${encodeURIComponent(filename)}`, { 
+                    method: 'DELETE' 
+                });
+                
+                if (response.ok) {
+                    alert('Archivo eliminado. La página se recargará.');
+                    window.location.reload();
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'No se pudo eliminar el archivo.');
+                }
+            } catch (error) {
+                console.error("Error al eliminar:", error);
+                alert(`Ocurrió un error: ${error.message}`);
+            }
+        }
+        
+        // --- INICIALIZACIÓN DE FIRMA DIGITAL ---
+        const urlParams = new URLSearchParams(window.location.search);
+        const sessionId = urlParams.get('session');
+        
+        console.log('🔍 Portal cargado. URL params:', window.location.search);
+        console.log('🔍 SessionId de la URL:', sessionId);
+        
+        // Si hay un sessionId en la URL, verificar si ya hay una firma
+        if (sessionId) {
+            console.log('✅ SessionId encontrado en URL, verificando firma existente...');
+            verificarFirmaExistente(sessionId);
+        } else {
+            console.log('❌ No hay sessionId en la URL, verificando estado del expediente...');
+            // Verificar el estado de firma del expediente actual
+            verificarEstadoFirmaExpediente();
+        }
+        
+        // --- FUNCIONES DE FIRMA DIGITAL INTEGRADA ---
+        
+        let signaturePad = null;
+        let currentSessionId = null;
+        
+        // Función para requerir firma (solo cambia el estado)
+        async function requerirFirma() {
+            try {
+                const expediente = "{{ caso.expediente }}";
+                
+                // Ocultar sección inicial
+                document.getElementById('firma-inicial').style.display = 'none';
+                
+                // Mostrar sección pendiente
+                document.getElementById('firma-pending').style.display = 'block';
+                
+                console.log('Firma solicitada para expediente:', expediente);
+                
+            } catch (error) {
+                console.error('Error al requerir firma:', error);
+                alert(`Error al solicitar firma: ${error.message}`);
+                
+                // Volver al estado inicial
+                document.getElementById('firma-pending').style.display = 'none';
+                document.getElementById('firma-inicial').style.display = 'block';
+            }
+        }
+        
+        // Función para abrir el panel de firma
+        function abrirPanelFirma() {
+            // Mostrar el modal
+            const firmaModal = new bootstrap.Modal(document.getElementById('firmaModal'));
+            firmaModal.show();
+            
+            // Inicializar el pad de firma
+            setTimeout(() => {
+                inicializarSignaturePad();
+            }, 300);
+        }
+        
+        // Función para obtener el sessionId de la URL si existe
+        function getSessionIdFromUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('session');
+        }
+        
+        // Función para inicializar el pad de firma
+        function inicializarSignaturePad() {
+            const canvas = document.getElementById('signaturePad');
+            
+            // Configurar el canvas
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            
+            // Crear el SignaturePad
+            signaturePad = new SignaturePad(canvas, { 
+                backgroundColor: 'rgb(255, 255, 255)',
+                penColor: 'blue' 
+            });
+            
+            // Configurar eventos
+            document.getElementById('clearSignature').onclick = () => {
+                signaturePad.clear();
+            };
+            
+            document.getElementById('sendSignature').onclick = async () => {
+                await enviarFirma();
+            };
+        }
+        
+        // Función para enviar la firma
+        async function enviarFirma() {
+            if (!signaturePad || signaturePad.isEmpty()) {
+                alert("La firma no puede estar vacía.");
+                return;
+            }
+            
+            const expediente = "{{ caso.expediente }}";
+            const messageDiv = document.getElementById('firmaMessage');
+            messageDiv.textContent = 'Enviando firma...';
+            messageDiv.className = 'text-center mt-3 text-info';
+            
+            try {
+                // Enviar la firma directamente al sistema principal
+                const data = { 
+                    expediente: expediente,
+                    sesion_id: "{{ caso.sesion_id }}",
+                    signature: signaturePad.toDataURL('image/png') 
+                };
+                
+                console.log('Enviando firma para expediente:', expediente);
+                
+                const response = await fetch('/api/submit-signature', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    messageDiv.textContent = '¡Firma enviada exitosamente!';
+                    messageDiv.className = 'text-center mt-3 text-success';
+                    
+                    console.log('Firma enviada exitosamente:', result);
+                    
+                    // Cerrar el modal después de 1 segundo
+                    setTimeout(() => {
+                        const firmaModal = bootstrap.Modal.getInstance(document.getElementById('firmaModal'));
+                        firmaModal.hide();
+                        
+                        // Mostrar estado completado
+                        handleSignatureArrival({ signature: data.signature });
+                    }, 1000);
+                    
+                } else {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Error del servidor al enviar la firma.');
+                }
+                
+            } catch (error) {
+                console.error('Error al enviar firma:', error);
+                messageDiv.textContent = `Error al enviar: ${error.message}`;
+                messageDiv.className = 'text-center mt-3 text-danger';
+            }
+        }
+        
+        // Función para manejar la llegada de la firma
+        function handleSignatureArrival(firmaData) {
+            // Ocultar sección pendiente
+            document.getElementById('firma-pending').style.display = 'none';
+            
+            // Mostrar sección completada
+            document.getElementById('firma-completed').style.display = 'block';
+            
+            // Mostrar preview de la firma
+            const previewDiv = document.getElementById('firma-preview');
+            previewDiv.innerHTML = `
+                <img src="${firmaData.signature}" alt="Firma digital" style="max-height: 100px; border: 1px solid #ddd; border-radius: 5px;">
+            `;
+        }
+        
+        // Función para verificar firma existente (cuando se carga la página)
+        async function verificarFirmaExistente(sessionId) {
+            try {
+                console.log('🔍 Verificando firma existente para sessionId:', sessionId);
+                const response = await fetch(`/api/check-signature/${sessionId}`);
+                const result = await response.json();
+                
+                console.log('📡 Respuesta de verificación:', result);
+                
+                if (result.success) {
+                    console.log('✅ Firma existente encontrada, mostrando estado completado');
+                    // Ocultar todas las secciones
+                    document.getElementById('firma-inicial').style.display = 'none';
+                    document.getElementById('firma-pending').style.display = 'none';
+                    
+                    // Mostrar estado completado
+                    handleSignatureArrival(result.data);
+                } else {
+                    console.log('⏳ No hay firma existente, mostrando sección inicial');
+                    // Verificar el estado de firma del expediente actual
+                    verificarEstadoFirmaExpediente();
+                }
+            } catch (error) {
+                console.error('❌ Error al verificar firma existente:', error);
+                // En caso de error, verificar el estado del expediente
+                verificarEstadoFirmaExpediente();
+            }
+        }
+        
+        // Función simplificada para verificar el estado de firma del expediente actual
+        async function verificarEstadoFirmaExpediente() {
+            // Por ahora, simplemente mostrar la sección inicial
+            // En el futuro se puede implementar verificación del estado
+            document.getElementById('firma-inicial').style.display = 'block';
+            document.getElementById('firma-pending').style.display = 'none';
+            document.getElementById('firma-completed').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

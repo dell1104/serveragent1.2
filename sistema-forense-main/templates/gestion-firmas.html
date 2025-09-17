@@ -1,0 +1,289 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Gestión de Firmas - Sistema Forense{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h2 text-gradient mb-0">
+                        <i class="fas fa-signature me-2"></i>Gestión de Firmas Permanentes
+                    </h1>
+                    <p class="text-muted mb-0">Administre las firmas permanentes del sistema</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('index') }}" class="btn btn-outline-primary">
+                        <i class="fas fa-arrow-left me-1"></i>Volver al Menú Principal
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firmas Guardadas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-list me-2"></i>Firmas Guardadas
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div id="firmasLista">
+                        <div class="text-center py-4">
+                            <i class="fas fa-signature fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No hay firmas guardadas</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agregar Nueva Firma -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus me-2"></i>Agregar Nueva Firma
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="firmaForm">
+                        <div class="row mb-3">
+                            <div class="col-md-8">
+                                <label for="nombreCompleto" class="form-label">Nombre, Apellido y Cargo Completo *</label>
+                                <input type="text" class="form-control" id="nombreCompleto" 
+                                       placeholder="Ej: Dr. Juan Pérez, Juez de Instrucción" required>
+                            </div>
+                            <div class="col-md-4 d-flex align-items-end">
+                                <button type="button" class="btn btn-primary w-100" onclick="requerirFirma()">
+                                    <i class="fas fa-signature me-1"></i>Requerir Firma
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para Captura de Firma -->
+<div class="modal fade" id="firmaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">
+                    <i class="fas fa-signature me-2"></i>Capturar Firma
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center mb-3">
+                    <p class="text-muted">Firme en el área de abajo usando el mouse o touchpad</p>
+                </div>
+                <div class="signature-container">
+                    <canvas id="signatureCanvas" width="600" height="200" 
+                            style="border: 2px dashed #007bff; border-radius: 8px; cursor: crosshair;"></canvas>
+                </div>
+                <div class="d-flex justify-content-between mt-3">
+                    <button type="button" class="btn btn-outline-secondary" onclick="limpiarFirma()">
+                        <i class="fas fa-eraser me-1"></i>Limpiar
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="guardarFirma()">
+                        <i class="fas fa-save me-1"></i>Guardar Firma
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let canvas, ctx;
+let isDrawing = false;
+let currentFirma = null;
+
+// Inicializar canvas cuando se abre el modal
+document.getElementById('firmaModal').addEventListener('show.bs.modal', function() {
+    canvas = document.getElementById('signatureCanvas');
+    ctx = canvas.getContext('2d');
+    
+    // Configurar canvas
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 2;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    
+    // Eventos del mouse
+    canvas.addEventListener('mousedown', startDrawing);
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mouseup', stopDrawing);
+    canvas.addEventListener('mouseout', stopDrawing);
+    
+    // Eventos táctiles
+    canvas.addEventListener('touchstart', handleTouch);
+    canvas.addEventListener('touchmove', handleTouch);
+    canvas.addEventListener('touchend', stopDrawing);
+});
+
+function startDrawing(e) {
+    isDrawing = true;
+    const rect = canvas.getBoundingClientRect();
+    ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
+}
+
+function draw(e) {
+    if (!isDrawing) return;
+    
+    const rect = canvas.getBoundingClientRect();
+    ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
+    ctx.stroke();
+}
+
+function stopDrawing() {
+    isDrawing = false;
+}
+
+function handleTouch(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 
+                                    e.type === 'touchmove' ? 'mousemove' : 'mouseup', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    canvas.dispatchEvent(mouseEvent);
+}
+
+function limpiarFirma() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+}
+
+function requerirFirma() {
+    const nombre = document.getElementById('nombreCompleto').value.trim();
+    if (!nombre) {
+        alert('Por favor, ingrese el nombre completo');
+        return;
+    }
+    
+    currentFirma = nombre;
+    const modal = new bootstrap.Modal(document.getElementById('firmaModal'));
+    modal.show();
+}
+
+function guardarFirma() {
+    if (isCanvasEmpty()) {
+        alert('Por favor, capture una firma antes de guardar');
+        return;
+    }
+    
+    // Convertir canvas a imagen
+    const imagenFirma = canvas.toDataURL('image/png');
+    
+    // Simular guardado (aquí iría la lógica real)
+    agregarFirmaALista(currentFirma, imagenFirma);
+    
+    // Cerrar modal y limpiar
+    const modal = bootstrap.Modal.getInstance(document.getElementById('firmaModal'));
+    modal.hide();
+    
+    limpiarFirma();
+    document.getElementById('nombreCompleto').value = '';
+    currentFirma = null;
+}
+
+function isCanvasEmpty() {
+    const blank = document.createElement('canvas');
+    blank.width = canvas.width;
+    blank.height = canvas.height;
+    return canvas.toDataURL() === blank.toDataURL();
+}
+
+function agregarFirmaALista(nombre, imagen) {
+    const lista = document.getElementById('firmasLista');
+    
+    // Si es la primera firma, limpiar el mensaje de "no hay firmas"
+    if (lista.querySelector('.text-center')) {
+        lista.innerHTML = '';
+    }
+    
+    const firmaDiv = document.createElement('div');
+    firmaDiv.className = 'firma-item mb-3 p-3 border rounded';
+    firmaDiv.innerHTML = `
+        <div class="d-flex align-items-center">
+            <div class="me-3">
+                <img src="${imagen}" alt="Firma" class="img-thumbnail" style="height: 50px;">
+            </div>
+            <div class="flex-grow-1">
+                <h6 class="mb-1">${nombre}</h6>
+                <small class="text-muted">Firma capturada</small>
+            </div>
+            <div>
+                <button class="btn btn-sm btn-outline-danger" onclick="eliminarFirma(this)">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
+    
+    lista.appendChild(firmaDiv);
+}
+
+function eliminarFirma(button) {
+    if (confirm('¿Está seguro de que desea eliminar esta firma?')) {
+        button.closest('.firma-item').remove();
+        
+        // Si no hay más firmas, mostrar mensaje
+        const lista = document.getElementById('firmasLista');
+        if (lista.children.length === 0) {
+            lista.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-signature fa-3x text-muted mb-3"></i>
+                    <p class="text-muted">No hay firmas guardadas</p>
+                </div>
+            `;
+        }
+    }
+}
+</script>
+
+<style>
+.signature-container {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+.firma-item {
+    transition: all 0.3s ease;
+}
+
+.firma-item:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-2px);
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}

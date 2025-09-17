@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema Forense{% endblock %}</title>
+    
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom Sidebar Styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_sidebar_simple.css') }}?v=1757804499">
+    <!-- Test CSS para verificar carga -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='test.css') }}?v=1757804499">
+    
+    <!-- Script para limpiar cache y prevenir conflictos -->
+    <script>
+        // Limpiar cualquier JavaScript residual
+        if (window.i18next) {
+            delete window.i18next;
+        }
+        
+        // Prevenir carga de scripts externos no deseados
+        const originalFetch = window.fetch;
+        window.fetch = function(url, options) {
+            if (url.includes('31015') || url.includes('locales') || url.includes('api/users/me') || url.includes('api/auth')) {
+                console.log('Bloqueando petición no deseada:', url);
+                return Promise.reject(new Error('Petición bloqueada'));
+            }
+            return originalFetch.call(this, url, options);
+        };
+        
+        // Limpiar localStorage y sessionStorage de datos residuales
+        try {
+            Object.keys(localStorage).forEach(key => {
+                if (key.includes('i18next') || key.includes('31015')) {
+                    localStorage.removeItem(key);
+                }
+            });
+            Object.keys(sessionStorage).forEach(key => {
+                if (key.includes('i18next') || key.includes('31015')) {
+                    sessionStorage.removeItem(key);
+                }
+            });
+        } catch (e) {
+            console.log('No se pudo limpiar storage:', e);
+        }
+    </script>
+    
+    {% block head_extra %}{% endblock %}
+</head>
+<body class="sb-nav-fixed">
+    <!-- Top Navigation -->
+    <nav class="sb-topnav navbar navbar-expand navbar-dark bg-dark">
+        <!-- Navbar Brand-->
+        <a class="navbar-brand ps-3" href="{{ url_for('index') }}">
+            <i class="fas fa-flask me-2"></i>Forense
+        </a>
+        <!-- Sidebar Toggle-->
+        <button class="btn btn-link btn-sm order-1 order-lg-0 me-4 me-lg-0" id="sidebarToggle" href="#!">
+            <i class="fas fa-bars"></i>
+        </button>
+        <!-- Navbar Search-->
+        <div class="d-none d-md-inline-block form-inline ms-auto me-0 me-md-3 my-2 my-md-0">
+            <!-- Search functionality can be added here -->
+        </div>
+        <!-- Navbar-->
+        <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="cursor: pointer;">
+                    <i class="fas fa-user fa-fw"></i>
+                    {% if current_user.is_authenticated %}
+                        <span class="ms-1">{{ current_user.username }}</span>
+                    {% endif %}
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                    <li><h6 class="dropdown-header">
+                        <i class="fas fa-user me-2"></i>
+                        {% if current_user.is_authenticated %}
+                            {{ current_user.username }}
+                        {% else %}
+                            Usuario
+                        {% endif %}
+                    </h6></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item" href="{% if current_user.is_admin() %}{{ url_for('admin.admin_panel') }}{% else %}{{ url_for('user_panel.mi_configuracion') }}{% endif %}">
+                        <i class="fas fa-cog me-2"></i>Configuración
+                    </a></li>
+                    <li><hr class="dropdown-divider" /></li>
+                    <li><a class="dropdown-item text-danger" href="{{ url_for('auth.logout') }}">
+                        <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                    </a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    
+    <div id="layoutSidenav">
+        <div id="layoutSidenav_nav">
+            <nav class="sb-sidenav accordion sb-sidenav-dark" id="sidenavAccordion">
+                <div class="sb-sidenav-menu">
+                    <div class="nav">
+                        <a class="nav-link" href="{{ url_for('index') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
+                            Inicio
+                        </a>
+                        {% if not current_user.is_admin() %}
+                        <a class="nav-link" href="{{ url_for('user_panel.mi_panel') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-user-circle"></i></div>
+                            Mi Panel
+                        </a>
+                        <a class="nav-link" href="{{ url_for('user_panel.mi_configuracion') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-cog"></i></div>
+                            Configuración
+                        </a>
+                        {% endif %}
+                        <a class="nav-link" href="{{ url_for('casos.gestion_casos') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-folder-open"></i></div>
+                            Gestión de Casos
+                        </a>
+                        <a class="nav-link" href="{{ url_for('serve_html_page', filename='formularioacta.html') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-file-alt"></i></div>
+                            Acta de Aporte
+                        </a>
+                        <a class="nav-link" href="{{ url_for('sala_de_espera') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-clock"></i></div>
+                            Sala de Espera
+                        </a>
+                        {% if current_user.is_admin() %}
+                        <a class="nav-link" href="{{ url_for('gestion_firmas') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-signature"></i></div>
+                            Gestión de Firmas
+                        </a>
+                        {% endif %}
+                        <!-- Herramientas - Submenú desplegable -->
+                        <div class="nav-item">
+                            <a class="nav-link collapsed" href="#" data-bs-toggle="collapse" data-bs-target="#herramientasCollapse" aria-expanded="false" aria-controls="herramientasCollapse">
+                                <div class="sb-nav-link-icon"><i class="fas fa-tools"></i></div>
+                                Herramientas
+                                <div class="sb-sidenav-collapse-arrow"><i class="fas fa-angle-down"></i></div>
+                            </a>
+                            <div class="collapse" id="herramientasCollapse" aria-labelledby="headingOne" data-bs-parent="#sidenavAccordion">
+                                <nav class="sb-sidenav-menu-nested nav">
+                                    <a class="nav-link" href="{{ url_for('transcripcion.transcripcion_audios') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-microphone"></i></div>
+                                        Transcripción de Audios
+                                    </a>
+                                    <a class="nav-link" href="{{ url_for('herramientas_forenses') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-calculator"></i></div>
+                                        Calculador de Hash
+                                    </a>
+                                    <a class="nav-link" href="{{ url_for('adquisicion_forense') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-hdd"></i></div>
+                                        Adquisición Forense
+                                    </a>
+                                    <a class="nav-link" href="{{ url_for('gestion_agentes') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users-cog"></i></div>
+                                        Mis Agentes
+                                    </a>
+                                </nav>
+                            </div>
+                        </div>
+                        <a class="nav-link" href="{{ url_for('instalar_agente') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-download"></i></div>
+                            Instalar Agente
+                        </a>
+                        {% if current_user.is_admin() %}
+                        <a class="nav-link" href="{{ url_for('agentes') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-network-wired"></i></div>
+                            Gestión de Agentes
+                        </a>
+                        {% endif %}
+                        <a class="nav-link" href="{{ url_for('busqueda') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-search"></i></div>
+                            Búsqueda
+                        </a>
+                        {% if current_user.is_admin() %}
+                        <div class="sb-sidenav-menu-heading">Administración</div>
+                        <a class="nav-link" href="{{ url_for('admin.admin_panel') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-user-shield"></i></div>
+                            Panel Admin
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="sb-sidenav-footer">
+                    <div class="small">Logueado como:</div>
+                    {{ current_user.username }}
+                </div>
+            </nav>
+        </div>
+        <div id="layoutSidenav_content">
+            <main>
+                <div class="container-fluid px-4">
+                    <h1 class="mt-4 mb-3 h2">{% block page_title %}{% endblock %}</h1>
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            <div class="flash-messages mb-3">
+                                {% for category, message in messages %}
+                                    <div class="alert alert-{{ 'danger' if category == 'error' else 'success' if category == 'success' else 'info' }} alert-dismissible fade show" role="alert">
+                                        {{ message }}
+                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                    {% block content %}{% endblock %}
+                </div>
+            </main>
+            <footer class="py-4 bg-light mt-auto">
+                <div class="container-fluid px-4">
+                    <div class="d-flex align-items-center justify-content-between small">
+                        <div class="text-muted">Copyright &copy; Sistema Forense 2024</div>
+                        <div>
+                            <a href="#">Política de Privacidad</a>
+                            &middot;
+                            <a href="#">Términos &amp; Condiciones</a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom Sidebar JS -->
+    <script src="{{ url_for('static', filename='js/sidebar.js') }}?v=1757804499"></script>
+    
+    <!-- Script para asegurar que el menú desplegable funcione -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Asegurar que el menú desplegable funcione
+            var dropdownElementList = [].slice.call(document.querySelectorAll('.dropdown-toggle'));
+            var dropdownList = dropdownElementList.map(function (dropdownToggleEl) {
+                return new bootstrap.Dropdown(dropdownToggleEl);
+            });
+            
+            // Agregar evento de clic al icono de usuario
+            const userIcon = document.getElementById('navbarDropdown');
+            if (userIcon) {
+                userIcon.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    const dropdown = bootstrap.Dropdown.getInstance(this) || new bootstrap.Dropdown(this);
+                    dropdown.toggle();
+                });
+            }
+        });
+    </script>
+    
+    <!-- Sidebar JavaScript -->
+    
+    {% block scripts_extra %}{% endblock %}
+</body>
+</html>

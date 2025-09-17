@@ -1,0 +1,876 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Transcripción de Audios - Sistema Forense{% endblock %}
+
+{% block page_title %}{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h4 class="mb-0">
+                        <i class="fas fa-microphone me-2"></i>Transcripción de Audios
+                    </h4>
+                    <p class="text-muted mb-0 small">Transcribe archivos de audio individuales o en lote con cálculo automático de hashes SHA256</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Configuración de API -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-cog me-2"></i>Configuración de AssemblyAI
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <label for="assemblyai-key" class="form-label">Clave API de AssemblyAI:</label>
+                            <input type="password" id="assemblyai-key" class="form-control" placeholder="Ingrese su clave API de AssemblyAI">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <small class="text-muted">
+                                Obtenga su clave en <a href="https://www.assemblyai.com/dashboard/signup" target="_blank">AssemblyAI</a>
+                            </small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transcripción de Audios -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-music me-2"></i>Transcripción de Audios
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="expediente-selector" class="form-label">Seleccionar Expediente:</label>
+                            <div class="input-group">
+                                <select id="expediente-selector" class="form-select" onchange="cargarArchivosExpediente()">
+                                    <option value="">Seleccionar expediente...</option>
+                                </select>
+                                <button class="btn btn-outline-secondary" onclick="buscarExpediente()">
+                                    <i class="fas fa-search"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="caso-expediente" class="form-label">Expediente del caso:</label>
+                            <input type="text" id="caso-expediente" class="form-control" readonly>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3" id="busqueda-manual" style="display: none;">
+                        <div class="col-md-8">
+                            <label for="expediente-manual" class="form-label">Número de Expediente:</label>
+                            <input type="text" id="expediente-manual" class="form-control" placeholder="Ej: P-1234-25">
+                        </div>
+                        <div class="col-md-4 d-flex align-items-end">
+                            <button class="btn btn-primary" onclick="cargarExpedienteManual()">
+                                <i class="fas fa-upload me-2"></i>Cargar Expediente
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="audio-files" class="form-label">Seleccionar archivo(s) de audio:</label>
+                        <div class="input-group">
+                            <input type="file" id="audio-files" class="form-control" accept="audio/*" multiple style="display: none;">
+                            <button class="btn btn-primary" onclick="document.getElementById('audio-files').click()">
+                                <i class="fas fa-folder-open me-2"></i>Examinar Archivos del Expediente
+                            </button>
+                        </div>
+                        <small class="text-muted">Selecciona archivos de audio del expediente cargado</small>
+                    </div>
+                    
+                    <div id="archivos-expediente" class="card" style="display: none;">
+                        <div class="card-header">
+                            <h6 class="mb-0">
+                                <i class="fas fa-folder me-2"></i>Archivos del Expediente
+                            </h6>
+                        </div>
+                        <div class="card-body">
+                            <div id="lista-archivos"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2 flex-wrap">
+                        <button class="btn btn-success" onclick="transcribirAudios()">
+                            <i class="fas fa-play me-2"></i>Transcribir Audios
+                        </button>
+                        <button class="btn btn-warning" onclick="descargarTranscripciones()">
+                            <i class="fas fa-download me-2"></i>Descargar Transcripciones
+                        </button>
+                        <button class="btn btn-danger" onclick="limpiarResultados()">
+                            <i class="fas fa-trash me-2"></i>Limpiar Resultados
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progreso -->
+    <div class="row mb-4" id="progress-container" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="progress mb-2" style="height: 20px;">
+                        <div class="progress-bar" id="progress-fill" role="progressbar" style="width: 0%"></div>
+                    </div>
+                    <p id="progress-text" class="text-center mb-0">Procesando...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultados -->
+    <div class="row mb-4" id="results-container">
+        <!-- Los resultados se mostrarán aquí -->
+    </div>
+    
+    <!-- Integración con WhatsApp -->
+    <div class="row mb-4" id="whatsapp-container" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-whatsapp me-2"></i>Integración con WhatsApp
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="chat-whatsapp-file" class="form-label">Cargar chat de WhatsApp (.txt):</label>
+                        <div class="input-group">
+                            <input type="file" id="chat-whatsapp-file" class="form-control" accept=".txt" style="display: none;">
+                            <button class="btn btn-primary" onclick="document.getElementById('chat-whatsapp-file').click()">
+                                <i class="fas fa-file-alt me-2"></i>Seleccionar Chat de WhatsApp
+                            </button>
+                            <span id="chat-whatsapp-seleccionado" class="input-group-text"></span>
+                        </div>
+                    </div>
+                    
+                    <div id="whatsapp-content" style="display: none;">
+                        <div class="mb-3">
+                            <label class="form-label">Archivos de audio encontrados en el chat:</label>
+                            <div id="archivos-whatsapp-lista" class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                                <!-- Los archivos se mostrarán aquí -->
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-success" onclick="insertarTranscripcionesWhatsApp()">
+                                <i class="fas fa-plus me-2"></i>Insertar Transcripciones en Chat
+                            </button>
+                            <button class="btn btn-info" onclick="descargarChatModificado()">
+                                <i class="fas fa-download me-2"></i>Descargar Chat Modificado
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Verificación de Transcripciones -->
+    <div class="row mb-4" id="verificacion-container" style="display: none;">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-check-circle me-2"></i>Verificación de Transcripciones
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="archivo-verificar" class="form-label">Seleccionar archivo de audio para verificar:</label>
+                        <div class="input-group">
+                            <input type="file" id="archivo-verificar" class="form-control" accept="audio/*" style="display: none;">
+                            <button class="btn btn-primary" onclick="document.getElementById('archivo-verificar').click()">
+                                <i class="fas fa-file-audio me-2"></i>Seleccionar Archivo de Audio
+                            </button>
+                            <span id="archivo-seleccionado" class="input-group-text"></span>
+                        </div>
+                    </div>
+                    
+                    <div class="row" id="verificacion-content" style="display: none;">
+                        <!-- Reproductor de Audio -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-play me-2"></i>Reproductor de Audio
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <audio id="audio-player" controls style="width: 100%; margin-bottom: 10px;">
+                                        Tu navegador no soporta el elemento de audio.
+                                    </audio>
+                                    <div class="d-flex gap-2 flex-wrap">
+                                        <button class="btn btn-sm btn-outline-primary" onclick="togglePlayPause()">
+                                            <i class="fas fa-play"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="skipBackward()">
+                                            <i class="fas fa-backward"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary" onclick="skipForward()">
+                                            <i class="fas fa-forward"></i>
+                                        </button>
+                                        <div class="input-group" style="width: auto;">
+                                            <span class="input-group-text">Velocidad:</span>
+                                            <select id="speed-select" class="form-select" onchange="changeSpeed()">
+                                                <option value="0.5">0.5x</option>
+                                                <option value="0.75">0.75x</option>
+                                                <option value="1" selected>1x</option>
+                                                <option value="1.25">1.25x</option>
+                                                <option value="1.5">1.5x</option>
+                                                <option value="2">2x</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Editor de Transcripción -->
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">
+                                        <i class="fas fa-edit me-2"></i>Editor de Transcripción
+                                    </h6>
+                                </div>
+                                <div class="card-body">
+                                    <div class="mb-2 p-2 bg-light rounded">
+                                        <small class="text-muted">
+                                            <strong>Archivo:</strong> <span id="archivo-nombre"></span><br>
+                                            <strong>Hash SHA256:</strong> <span id="archivo-hash"></span>
+                                        </small>
+                                    </div>
+                                    <textarea id="transcript-editor" class="form-control" rows="8" placeholder="La transcripción aparecerá aquí..."></textarea>
+                                    <div class="d-flex gap-2 mt-2 flex-wrap">
+                                        <button class="btn btn-success btn-sm" onclick="guardarTranscripcion()">
+                                            <i class="fas fa-save me-1"></i>Guardar Cambios
+                                        </button>
+                                        <button class="btn btn-info btn-sm" onclick="insertarTimestamp()">
+                                            <i class="fas fa-clock me-1"></i>Insertar Timestamp
+                                        </button>
+                                        <button class="btn btn-warning btn-sm" onclick="resetearTranscripcion()">
+                                            <i class="fas fa-undo me-1"></i>Resetear
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let resultadosTranscripcion = [];
+    let chatLines = [];
+    let chatModificado = [];
+    let expedientesDisponibles = [];
+    let expedienteActual = null;
+    let archivosExpediente = [];
+    let archivoActual = null;
+    let transcripcionOriginal = '';
+    let archivoSeleccionado = null;
+    let chatWhatsApp = null;
+    let archivosWhatsApp = [];
+    
+    // Función para mostrar alertas
+    function mostrarAlerta(mensaje, tipo = 'info') {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : tipo === 'error' ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.getElementById('results-container').insertBefore(alertDiv, document.getElementById('results-container').firstChild);
+        
+        setTimeout(() => {
+            alertDiv.remove();
+        }, 5000);
+    }
+    
+    // Función para actualizar progreso
+    function actualizarProgreso(porcentaje, texto) {
+        document.getElementById('progress-container').style.display = 'block';
+        document.getElementById('progress-fill').style.width = porcentaje + '%';
+        document.getElementById('progress-text').textContent = texto;
+    }
+    
+    // Función para ocultar progreso
+    function ocultarProgreso() {
+        document.getElementById('progress-container').style.display = 'none';
+    }
+    
+    // Transcribir audios (individual o múltiples)
+    async function transcribirAudios() {
+        const fileInput = document.getElementById('audio-files');
+        const expediente = document.getElementById('caso-expediente').value;
+        
+        if (!expedienteActual) {
+            mostrarAlerta('Por favor seleccione un expediente primero', 'warning');
+            return;
+        }
+        
+        if (!fileInput.files.length) {
+            mostrarAlerta('Por favor seleccione al menos un archivo de audio', 'danger');
+            return;
+        }
+        
+        // Subir archivos
+        const archivos = [];
+        const totalArchivos = fileInput.files.length;
+        
+        try {
+            actualizarProgreso(10, 'Subiendo archivos...');
+            
+            for (let i = 0; i < totalArchivos; i++) {
+                const formData = new FormData();
+                formData.append('archivo', fileInput.files[i]);
+                formData.append('expediente', expediente);
+                formData.append('sesion_id', expedienteActual);
+                
+                const uploadResponse = await fetch('/api/upload-audio', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (uploadResponse.ok) {
+                    const uploadData = await uploadResponse.json();
+                    archivos.push(uploadData.archivo_path);
+                }
+                
+                // Actualizar progreso de subida
+                const progresoSubida = 10 + (i + 1) / totalArchivos * 20;
+                actualizarProgreso(progresoSubida, `Subiendo archivo ${i + 1}/${totalArchivos}...`);
+            }
+            
+            if (archivos.length === 0) {
+                mostrarAlerta('No se pudieron subir los archivos', 'danger');
+                return;
+            }
+            
+            // Transcribir archivos
+            actualizarProgreso(30, `Transcribiendo ${archivos.length} archivo(s)...`);
+            
+            const response = await fetch('/api/transcribir-lote', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    archivos: archivos,
+                    assemblyai_key: document.getElementById('assemblyai-key').value,
+                    caso_expediente: expediente
+                })
+            });
+            
+            const result = await response.json();
+            
+            if (result.success) {
+                actualizarProgreso(100, 'Transcripción completada');
+                mostrarResultadosLote(result);
+                resultadosTranscripcion = result.resultados;
+            } else {
+                throw new Error(result.error);
+            }
+            
+        } catch (error) {
+            mostrarAlerta('Error: ' + error.message, 'danger');
+        } finally {
+            setTimeout(ocultarProgreso, 2000);
+        }
+    }
+    
+    // Mostrar resultado individual
+    function mostrarResultado(resultado, tipo) {
+        const container = document.getElementById('results-container');
+        const resultDiv = document.createElement('div');
+        resultDiv.className = `col-12 mb-3`;
+        
+        resultDiv.innerHTML = `
+            <div class="card ${tipo === 'success' ? 'border-success' : 'border-danger'}">
+                <div class="card-header">
+                    <h6 class="mb-0">
+                        <i class="fas fa-${tipo === 'success' ? 'check-circle text-success' : 'exclamation-triangle text-danger'} me-2"></i>
+                        ${resultado.archivo}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted small mb-2">
+                        <strong>Hash SHA256:</strong> <code>${resultado.hash}</code>
+                    </p>
+                    <div class="bg-light p-3 rounded" style="max-height: 200px; overflow-y: auto;">
+                        <pre class="mb-0">${resultado.transcripcion}</pre>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        container.appendChild(resultDiv);
+    }
+    
+    // Mostrar resultados de transcripción
+    function mostrarResultadosLote(resultado) {
+        const container = document.getElementById('results-container');
+        
+        // Mostrar resumen
+        const resumenDiv = document.createElement('div');
+        resumenDiv.className = 'col-12 mb-3';
+        resumenDiv.innerHTML = `
+            <div class="alert alert-info">
+                <h6 class="alert-heading">
+                    <i class="fas fa-info-circle me-2"></i>Resumen de transcripción
+                </h6>
+                <p class="mb-0">
+                    ✅ <strong>Procesados:</strong> ${resultado.total_procesados}<br>
+                    ❌ <strong>Errores:</strong> ${resultado.total_errores}
+                </p>
+            </div>
+        `;
+        container.appendChild(resumenDiv);
+        
+        // Mostrar resultados exitosos
+        resultado.resultados.forEach(res => {
+            mostrarResultado(res, 'success');
+        });
+        
+        // Mostrar errores
+        resultado.errores.forEach(err => {
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'col-12 mb-3';
+            errorDiv.innerHTML = `
+                <div class="card border-danger">
+                    <div class="card-header">
+                        <h6 class="mb-0 text-danger">
+                            <i class="fas fa-exclamation-triangle me-2"></i>${err.archivo}
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-danger mb-0">Error: ${err.error}</p>
+                    </div>
+                </div>
+            `;
+            container.appendChild(errorDiv);
+        });
+        
+        // Configurar selector de verificación
+        configurarSelectorVerificacion();
+        
+        // Mostrar sección de verificación si hay resultados
+        if (resultado.total_procesados > 0) {
+            document.getElementById('verificacion-container').style.display = 'block';
+            document.getElementById('whatsapp-container').style.display = 'block';
+        }
+    }
+    
+    // Cargar expedientes disponibles al iniciar
+    async function cargarExpedientesDisponibles() {
+        try {
+            const response = await fetch('/api/casos_completos');
+            const casos = await response.json();
+            
+            expedientesDisponibles = casos.map(caso => ({
+                sesion_id: caso.sesion_id,
+                expediente: caso.expediente,
+                nombre_caso: caso.nombre_caso,
+                fecha_creacion: caso.fecha_creacion
+            }));
+            
+            actualizarSelectorExpedientes();
+        } catch (error) {
+            console.error('Error al cargar expedientes:', error);
+        }
+    }
+
+    // Actualizar el selector de expedientes
+    function actualizarSelectorExpedientes() {
+        const selector = document.getElementById('expediente-selector');
+        selector.innerHTML = '<option value="">Seleccionar expediente...</option>';
+        
+        expedientesDisponibles.forEach(expediente => {
+            const option = document.createElement('option');
+            option.value = expediente.sesion_id;
+            option.textContent = `${expediente.expediente} - ${expediente.nombre_caso}`;
+            selector.appendChild(option);
+        });
+    }
+
+    // Cargar archivos del expediente seleccionado
+    async function cargarArchivosExpediente() {
+        const selector = document.getElementById('expediente-selector');
+        const sesionId = selector.value;
+        
+        if (!sesionId) {
+            document.getElementById('archivos-expediente').style.display = 'none';
+            document.getElementById('caso-expediente').value = '';
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/estructura-caso/${sesionId}`);
+            const data = await response.json();
+            
+            if (data.success) {
+                expedienteActual = sesionId;
+                const expediente = expedientesDisponibles.find(e => e.sesion_id === sesionId);
+                document.getElementById('caso-expediente').value = expediente.expediente;
+                
+                // Recopilar todos los archivos de audio
+                archivosExpediente = [];
+                Object.keys(data.estructura).forEach(carpeta => {
+                    if (carpeta === 'audios' && data.estructura[carpeta]) {
+                        data.estructura[carpeta].forEach(archivo => {
+                            archivosExpediente.push({
+                                nombre: archivo.nombre,
+                                tamaño: archivo.tamaño,
+                                hash: archivo.hash,
+                                ruta: `${sesionId}/audios/${archivo.nombre}`
+                            });
+                        });
+                    }
+                });
+                
+                mostrarArchivosExpediente();
+            } else {
+                mostrarAlerta('Error al cargar archivos del expediente', 'error');
+            }
+        } catch (error) {
+            console.error('Error al cargar archivos:', error);
+            mostrarAlerta('Error al cargar archivos del expediente', 'error');
+        }
+    }
+
+    // Mostrar archivos del expediente
+    function mostrarArchivosExpediente() {
+        const container = document.getElementById('archivos-expediente');
+        const lista = document.getElementById('lista-archivos');
+        
+        if (archivosExpediente.length === 0) {
+            lista.innerHTML = '<p class="text-muted">No hay archivos de audio en este expediente.</p>';
+        } else {
+            lista.innerHTML = archivosExpediente.map(archivo => `
+                <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                    <div>
+                        <i class="fas fa-music text-primary me-2"></i>
+                        <strong>${archivo.nombre}</strong>
+                        <small class="text-muted ms-2">(${formatearTamaño(archivo.tamaño)})</small>
+                    </div>
+                    <small class="text-muted font-monospace">${archivo.hash.substring(0, 16)}...</small>
+                </div>
+            `).join('');
+        }
+        
+        container.style.display = 'block';
+    }
+
+    // Formatear tamaño de archivo
+    function formatearTamaño(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    // Buscar expediente manualmente
+    function buscarExpediente() {
+        const busqueda = document.getElementById('busqueda-manual');
+        busqueda.style.display = busqueda.style.display === 'none' ? 'block' : 'none';
+    }
+
+    // Cargar expediente manual
+    async function cargarExpedienteManual() {
+        const expediente = document.getElementById('expediente-manual').value.trim();
+        
+        if (!expediente) {
+            mostrarAlerta('Por favor ingresa un número de expediente', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch('/api/cargar-expediente', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ expediente: expediente })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                expedienteActual = data.sesion_id;
+                document.getElementById('caso-expediente').value = expediente;
+                document.getElementById('expediente-manual').value = '';
+                document.getElementById('busqueda-manual').style.display = 'none';
+                
+                // Cargar archivos del expediente
+                await cargarArchivosExpediente();
+                mostrarAlerta('Expediente cargado exitosamente', 'success');
+            } else {
+                mostrarAlerta(data.error || 'Error al cargar expediente', 'error');
+            }
+        } catch (error) {
+            console.error('Error al cargar expediente:', error);
+            mostrarAlerta('Error al cargar expediente', 'error');
+        }
+    }
+    
+    // Configurar selector de archivo para verificación
+    function configurarSelectorVerificacion() {
+        const fileInput = document.getElementById('archivo-verificar');
+        const archivoInfo = document.getElementById('archivo-seleccionado');
+        
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (file) {
+                archivoSeleccionado = file;
+                archivoInfo.textContent = `📁 ${file.name}`;
+                cargarArchivoParaVerificacion(file);
+            } else {
+                archivoSeleccionado = null;
+                archivoInfo.textContent = '';
+                document.getElementById('verificacion-content').style.display = 'none';
+            }
+        });
+    }
+    
+    // Cargar archivo para verificación
+    async function cargarArchivoParaVerificacion(file) {
+        if (!file) return;
+        
+        try {
+            // Subir archivo al servidor
+            const formData = new FormData();
+            formData.append('archivo', file);
+            
+            const uploadResponse = await fetch('/api/upload-audio', {
+                method: 'POST',
+                body: formData
+            });
+            
+            if (!uploadResponse.ok) {
+                throw new Error('Error al subir archivo');
+            }
+            
+            const uploadData = await uploadResponse.json();
+            
+            // Calcular hash del archivo
+            const hashResponse = await fetch('/api/calcular-hash-archivo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    archivo_path: uploadData.archivo_path
+                })
+            });
+            
+            const hashResult = await hashResponse.json();
+            
+            if (!hashResult.success) {
+                throw new Error('Error al calcular hash');
+            }
+            
+            // Buscar si ya existe una transcripción para este archivo
+            let transcripcionExistente = resultadosTranscripcion.find(r => r.archivo === file.name);
+            
+            if (!transcripcionExistente) {
+                const nombreBase = file.name.replace(/_\d{8}_\d{6}\./, '.');
+                transcripcionExistente = resultadosTranscripcion.find(r => {
+                    const nombreBaseResultado = r.archivo.replace(/_\d{8}_\d{6}\./, '.');
+                    return nombreBaseResultado === nombreBase;
+                });
+            }
+            
+            // Crear objeto de archivo actual
+            archivoActual = {
+                archivo: file.name,
+                hash: hashResult.hash,
+                transcripcion: transcripcionExistente ? transcripcionExistente.transcripcion : '',
+                archivo_path: uploadData.archivo_path
+            };
+            
+            transcripcionOriginal = archivoActual.transcripcion;
+            
+            // Actualizar información del archivo
+            document.getElementById('archivo-nombre').textContent = archivoActual.archivo;
+            document.getElementById('archivo-hash').textContent = archivoActual.hash;
+            
+            // Cargar transcripción en el editor
+            const editor = document.getElementById('transcript-editor');
+            editor.value = archivoActual.transcripcion;
+            
+            // Configurar reproductor de audio
+            const audioPlayer = document.getElementById('audio-player');
+            const audioUrl = `/audios/${uploadData.filename}`;
+            audioPlayer.src = audioUrl;
+            audioPlayer.load();
+            
+            // Mostrar contenido de verificación
+            document.getElementById('verificacion-content').style.display = 'block';
+            
+            if (transcripcionExistente && transcripcionExistente.transcripcion) {
+                mostrarAlerta('Transcripción existente cargada', 'info');
+            } else {
+                mostrarAlerta('Archivo cargado. No se encontró transcripción existente. Puedes crear una nueva.', 'warning');
+            }
+            
+        } catch (error) {
+            mostrarAlerta('Error al cargar archivo: ' + error.message, 'danger');
+        }
+    }
+    
+    // Controles del reproductor
+    function togglePlayPause() {
+        const audio = document.getElementById('audio-player');
+        if (audio.paused) {
+            audio.play();
+        } else {
+            audio.pause();
+        }
+    }
+    
+    function skipBackward() {
+        const audio = document.getElementById('audio-player');
+        audio.currentTime = Math.max(0, audio.currentTime - 1);
+    }
+    
+    function skipForward() {
+        const audio = document.getElementById('audio-player');
+        audio.currentTime = Math.min(audio.duration, audio.currentTime + 1);
+    }
+    
+    function changeSpeed() {
+        const audio = document.getElementById('audio-player');
+        const speed = document.getElementById('speed-select').value;
+        audio.playbackRate = parseFloat(speed);
+    }
+    
+    // Controles del editor
+    function guardarTranscripcion() {
+        if (!archivoActual) return;
+        
+        const nuevaTranscripcion = document.getElementById('transcript-editor').value;
+        
+        // Actualizar en los resultados si existe
+        const index = resultadosTranscripcion.findIndex(r => r.archivo === archivoActual.archivo);
+        if (index !== -1) {
+            resultadosTranscripcion[index].transcripcion = nuevaTranscripcion;
+        } else {
+            // Si no existe, agregarlo a los resultados
+            resultadosTranscripcion.push({
+                archivo: archivoActual.archivo,
+                hash: archivoActual.hash,
+                transcripcion: nuevaTranscripcion
+            });
+        }
+        
+        // Actualizar el objeto actual
+        archivoActual.transcripcion = nuevaTranscripcion;
+        
+        mostrarAlerta('Transcripción guardada exitosamente', 'success');
+    }
+    
+    function insertarTimestamp() {
+        const editor = document.getElementById('transcript-editor');
+        const audio = document.getElementById('audio-player');
+        const tiempo = audio.currentTime || 0;
+        const minutos = Math.floor(tiempo / 60);
+        const segundos = Math.floor(tiempo % 60);
+        const timestamp = `[${minutos}:${segundos.toString().padStart(2, '0')}] `;
+        
+        const posicion = editor.selectionStart;
+        const texto = editor.value;
+        const nuevoTexto = texto.substring(0, posicion) + timestamp + texto.substring(posicion);
+        
+        editor.value = nuevoTexto;
+        editor.focus();
+        editor.setSelectionRange(posicion + timestamp.length, posicion + timestamp.length);
+    }
+    
+    function resetearTranscripcion() {
+        if (confirm('¿Está seguro de que desea resetear la transcripción a su estado original?')) {
+            document.getElementById('transcript-editor').value = transcripcionOriginal;
+            mostrarAlerta('Transcripción reseteada', 'info');
+        }
+    }
+    
+    // Descargar transcripciones
+    function descargarTranscripciones() {
+        if (resultadosTranscripcion.length === 0) {
+            mostrarAlerta('No hay transcripciones para descargar', 'danger');
+            return;
+        }
+        
+        let contenido = `TRANSCRIPCIONES DE AUDIOS\n`;
+        contenido += `Fecha: ${new Date().toLocaleString()}\n`;
+        contenido += `Total de archivos: ${resultadosTranscripcion.length}\n`;
+        contenido += `=${'='.repeat(50)}\n\n`;
+        
+        resultadosTranscripcion.forEach((resultado, index) => {
+            contenido += `ARCHIVO ${index + 1}:\n`;
+            contenido += `Nombre: ${resultado.archivo}\n`;
+            contenido += `Hash SHA256: ${resultado.hash}\n`;
+            contenido += `Transcripción:\n${resultado.transcripcion}\n`;
+            contenido += `-${'-'.repeat(50)}\n\n`;
+        });
+        
+        const blob = new Blob([contenido], { type: 'text/plain' });
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `transcripciones_${new Date().toISOString().split('T')[0]}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+        
+        mostrarAlerta('Transcripciones descargadas exitosamente', 'success');
+    }
+    
+    // Limpiar resultados
+    function limpiarResultados() {
+        document.getElementById('results-container').innerHTML = '';
+        resultadosTranscripcion = [];
+        mostrarAlerta('Resultados limpiados', 'info');
+    }
+    
+    // Funciones para WhatsApp (simplificadas)
+    function insertarTranscripcionesWhatsApp() {
+        mostrarAlerta('Función de WhatsApp en desarrollo', 'info');
+    }
+    
+    function descargarChatModificado() {
+        mostrarAlerta('Función de WhatsApp en desarrollo', 'info');
+    }
+
+    // Inicializar cuando se carga la página
+    document.addEventListener('DOMContentLoaded', function() {
+        configurarSelectorVerificacion();
+        cargarExpedientesDisponibles();
+    });
+</script>
+{% endblock %}

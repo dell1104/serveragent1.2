@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Instalar Agente Forense (Simple) - Sistema Forense</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .system-card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .system-card:hover {
+            transform: translateY(-5px);
+        }
+        .system-card.selected {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+        }
+        .installer-progress {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 d-md-block bg-light sidebar">
+                <div class="position-sticky pt-3">
+                    <ul class="nav flex-column">
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('index') }}">
+                                <i class="fas fa-home me-2"></i>Inicio
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('casos.gestion_casos') }}">
+                                <i class="fas fa-folder me-2"></i>Gestión de Casos
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('adquisicion_forense') }}">
+                                <i class="fas fa-hdd me-2"></i>Adquisición Forense
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link active" href="{{ url_for('instalar_agente') }}">
+                                <i class="fas fa-download me-2"></i>Instalar Agente
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('agentes') }}">
+                                <i class="fas fa-server me-2"></i>Gestión de Agentes
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('admin_panel') }}">
+                                <i class="fas fa-cog me-2"></i>Panel Admin
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" href="{{ url_for('logout') }}">
+                                <i class="fas fa-sign-out-alt me-2"></i>Cerrar Sesión
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Main Content -->
+            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                    <h1 class="h2">
+                        <i class="fas fa-download me-2"></i>Instalar Agente Forense (Simple)
+                    </h1>
+                </div>
+
+                <!-- Alert de información -->
+                <div class="alert alert-info">
+                    <h6><i class="fas fa-info-circle me-2"></i>Instalador Simplificado</h6>
+                    <p class="mb-0">Esta versión simplificada instala solo las dependencias básicas de Python. Para funcionalidad completa, use el instalador completo.</p>
+                </div>
+
+                <!-- Detección automática del sistema -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h4><i class="fas fa-desktop me-2"></i>Detección Automática del Sistema</h4>
+                        <div class="card">
+                            <div class="card-body">
+                                <div id="system-info" class="text-center">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Detectando sistema...</span>
+                                    </div>
+                                    <p class="mt-2">Detectando tu sistema operativo...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Selección de sistema -->
+                <div class="row mb-4" id="system-selection" style="display: none;">
+                    <div class="col-12">
+                        <h4><i class="fas fa-choose me-2"></i>Selecciona tu Sistema Operativo</h4>
+                        <div class="row" id="system-cards">
+                            <!-- Se llenará dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Progreso de instalación -->
+                <div class="row mb-4" id="installer-progress" style="display: none;">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-cog me-2"></i>Generando Instalador</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="progress mb-3">
+                                    <div class="progress-bar" role="progressbar" style="width: 0%" id="progress-bar"></div>
+                                </div>
+                                <div id="progress-text">Preparando instalador...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Descarga del instalador -->
+                <div class="row mb-4" id="installer-download" style="display: none;">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-download me-2"></i>Instalador Listo</h5>
+                            </div>
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas fa-check-circle text-success" style="font-size: 3rem;"></i>
+                                </div>
+                                <h5>¡Instalador generado exitosamente!</h5>
+                                <p class="text-muted">Descarga e instala el agente forense en tu sistema.</p>
+                                <a href="#" class="btn btn-primary btn-lg" id="download-link">
+                                    <i class="fas fa-download me-2"></i>Descargar Instalador
+                                </a>
+                                <div class="mt-3">
+                                    <small class="text-muted">
+                                        <i class="fas fa-info-circle me-1"></i>
+                                        Archivo: <span id="installer-filename"></span>
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Instrucciones -->
+                <div class="row">
+                    <div class="col-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-list me-2"></i>Instrucciones de Instalación</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="text-center mb-3">
+                                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <span class="fw-bold">1</span>
+                                            </div>
+                                            <h6 class="mt-2">Descargar</h6>
+                                            <p class="small text-muted">Descarga el instalador para tu sistema operativo</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center mb-3">
+                                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <span class="fw-bold">2</span>
+                                            </div>
+                                            <h6 class="mt-2">Ejecutar</h6>
+                                            <p class="small text-muted">Ejecuta el instalador como administrador</p>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="text-center mb-3">
+                                            <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center" style="width: 50px; height: 50px;">
+                                                <span class="fw-bold">3</span>
+                                            </div>
+                                            <h6 class="mt-2">Configurar</h6>
+                                            <p class="small text-muted">Configura el inicio automático del agente</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Detectar sistema operativo
+        function detectSystem() {
+            const userAgent = navigator.userAgent;
+            const platform = navigator.platform;
+            
+            let os = 'unknown';
+            let arch = 'x64';
+            
+            if (userAgent.includes('Windows')) {
+                os = 'windows';
+            } else if (userAgent.includes('Mac')) {
+                os = 'macos';
+            } else if (userAgent.includes('Linux')) {
+                os = 'linux';
+            }
+            
+            // Detectar arquitectura
+            if (platform.includes('x64') || userAgent.includes('x64')) {
+                arch = 'x64';
+            } else if (platform.includes('x86') || userAgent.includes('x86')) {
+                arch = 'x86';
+            } else if (platform.includes('arm64') || userAgent.includes('arm64')) {
+                arch = 'arm64';
+            }
+            
+            return { os, arch };
+        }
+
+        // Mostrar información del sistema
+        function showSystemInfo(systemInfo) {
+            const systemInfoDiv = document.getElementById('system-info');
+            const systemSelectionDiv = document.getElementById('system-selection');
+            
+            const osNames = {
+                'windows': 'Windows',
+                'macos': 'macOS',
+                'linux': 'Linux',
+                'unknown': 'Desconocido'
+            };
+            
+            const archNames = {
+                'x64': '64-bit',
+                'x86': '32-bit',
+                'arm64': 'ARM64'
+            };
+            
+            systemInfoDiv.innerHTML = `
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-desktop me-2"></i>Sistema Operativo</h6>
+                        <p class="h5 text-primary">${osNames[systemInfo.os]}</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h6><i class="fas fa-microchip me-2"></i>Arquitectura</h6>
+                        <p class="h5 text-primary">${archNames[systemInfo.arch]}</p>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button class="btn btn-primary" onclick="generateInstaller('${systemInfo.os}', '${systemInfo.arch}')">
+                        <i class="fas fa-download me-2"></i>Generar Instalador
+                    </button>
+                </div>
+            `;
+            
+            systemSelectionDiv.style.display = 'block';
+        }
+
+        // Generar instalador
+        async function generateInstaller(os, arch) {
+            const progressDiv = document.getElementById('installer-progress');
+            const downloadDiv = document.getElementById('installer-download');
+            
+            progressDiv.style.display = 'block';
+            
+            try {
+                const response = await fetch('/api/installer/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        os: os,
+                        arch: arch,
+                        simple: true
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Error generando instalador');
+                }
+                
+                const data = await response.json();
+                
+                // Simular progreso
+                let progress = 0;
+                const progressBar = document.getElementById('progress-bar');
+                const progressText = document.getElementById('progress-text');
+                
+                const interval = setInterval(() => {
+                    progress += 10;
+                    progressBar.style.width = progress + '%';
+                    
+                    if (progress <= 30) {
+                        progressText.textContent = 'Preparando archivos...';
+                    } else if (progress <= 60) {
+                        progressText.textContent = 'Generando instalador...';
+                    } else if (progress <= 90) {
+                        progressText.textContent = 'Comprimiendo archivos...';
+                    } else {
+                        progressText.textContent = 'Finalizando...';
+                    }
+                    
+                    if (progress >= 100) {
+                        clearInterval(interval);
+                        progressDiv.style.display = 'none';
+                        showDownload(data.installer_url, data.filename);
+                    }
+                }, 200);
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generando instalador: ' + error.message);
+                progressDiv.style.display = 'none';
+            }
+        }
+
+        // Mostrar descarga
+        function showDownload(url, filename) {
+            const downloadDiv = document.getElementById('installer-download');
+            const downloadLink = document.getElementById('download-link');
+            const filenameSpan = document.getElementById('installer-filename');
+            
+            downloadLink.href = url;
+            filenameSpan.textContent = filename;
+            downloadDiv.style.display = 'block';
+        }
+
+        // Inicializar
+        document.addEventListener('DOMContentLoaded', function() {
+            const systemInfo = detectSystem();
+            showSystemInfo(systemInfo);
+        });
+    </script>
+</body>
+</html>

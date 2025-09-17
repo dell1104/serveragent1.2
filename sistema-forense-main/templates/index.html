@@ -1,0 +1,219 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Menú Principal - Sistema Forense{% endblock %}
+
+{% block page_title %}Dashboard{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Header de Bienvenida -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex align-items-center">
+                        <div class="welcome-icon me-3">
+                            <i class="fas fa-hand-wave text-primary"></i>
+                        </div>
+                        <div>
+                            <h1 class="h3 mb-1">
+                                ¡Bienvenido, {{ current_user.nombre_completo }}!
+                            </h1>
+                            <p class="text-muted mb-0 small">
+                                <span class="badge bg-primary me-2">{{ 'Administrador' if current_user.es_admin else 'Usuario' }}</span>
+                                {{ current_user.email }}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Menú Principal -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card fade-in-up">
+                <div class="card-header">
+                    <h3 class="mb-0">
+                        <i class="fas fa-th-large me-2"></i>Menú Principal
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Gestión de Casos -->
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('casos.gestion_casos') }}" class="menu-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-folder-open"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Gestión de Casos</h5>
+                                    <p>Crear y administrar casos forenses</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Acta de Aporte -->
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('serve_html_page', filename='formularioacta.html') }}" class="menu-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Acta de Aporte</h5>
+                                    <p>Generar actas de aporte</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Sala de Espera -->
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('serve_html_page', filename='sala-de-espera.html') }}" class="menu-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-users"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Sala de Espera</h5>
+                                    <p>Gestionar sala de espera</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Agregar Firmas -->
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('serve_html_page', filename='gestion-firmas.html') }}" class="menu-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-signature"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Agregar Firmas</h5>
+                                    <p>Gestionar firmas permanentes</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Buscador -->
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('serve_html_page', filename='busqueda.html') }}" class="menu-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Buscador</h5>
+                                    <p>Buscar casos y evidencia</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Transcripción de Audios -->
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('audio_menu') }}" class="menu-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-microphone"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Transcripción de Audios</h5>
+                                    <p>Procesar audios y generar transcripciones</p>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Panel de Administración (solo para admin) -->
+                        {% if current_user.es_admin %}
+                        <div class="col-md-6 col-lg-4">
+                            <a href="{{ url_for('admin.admin_panel') }}" class="menu-card admin-card">
+                                <div class="menu-icon">
+                                    <i class="fas fa-cog"></i>
+                                </div>
+                                <div class="menu-content">
+                                    <h5>Panel de Administración</h5>
+                                    <p>Gestionar usuarios y configuración</p>
+                                </div>
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.welcome-card {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+}
+
+.welcome-icon {
+    font-size: 3rem;
+    opacity: 0.8;
+}
+
+.menu-card {
+    display: block;
+    background: white;
+    border: 2px solid #e9ecef;
+    border-radius: 15px;
+    padding: 1.5rem;
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.3s ease;
+    height: 100%;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.menu-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-color: #007bff;
+    text-decoration: none;
+    color: inherit;
+}
+
+.menu-icon {
+    font-size: 2.5rem;
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.menu-content h5 {
+    color: #333;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.menu-content p {
+    color: #666;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.admin-card {
+    border-color: #28a745;
+}
+
+.admin-card .menu-icon {
+    color: #28a745;
+}
+
+.fade-in-up {
+    animation: fadeInUp 0.6s ease-out;
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+</style>
+{% endblock %}

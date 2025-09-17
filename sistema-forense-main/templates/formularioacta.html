@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulario de Acta de Aporte</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_modern.css') }}}">
+</head>
+<body>
+    <!-- MODAL DE SELECCIÓN DE CASO -->
+    <div id="case-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Gestión de Casos</h2>
+            
+            <p class="section-title">Crear nuevo caso</p>
+            <div class="modal-field-group">
+                <div>
+                    <label for="case-name-input">Nombre del caso:</label>
+                    <input type="text" id="case-name-input" placeholder="Ej: Caso_Martinez_2025" required>
+                </div>
+                <div>
+                    <label for="expediente-input-modal">Número de expediente:</label>
+                    <input type="text" id="expediente-input-modal" placeholder="Ej: P-45.321-25" required>
+                </div>
+            </div>
+            <button id="create-case-btn" class="btn btn-success">Crear y Activar Portal</button>
+            <div id="portal-link-container" style="display:none;">
+                <p>Portal activado:</p><strong id="portal-link"></strong><br><br>
+                <button id="close-modal-btn" class="btn btn-primary">Continuar al Acta</button>
+            </div>
+
+            <p class="section-title">Continuar caso existente</p>
+            <div class="modal-action-group">
+                <select id="select-caso-activo"></select>
+                <button id="continuar-caso-btn" class="btn btn-info">Continuar</button>
+            </div>
+
+            <p class="section-title">Reabrir caso finalizado</p>
+            <div class="modal-action-group">
+                <select id="select-caso-finalizado"></select>
+                <button id="reabrir-caso-btn" class="btn btn-purple">Reabrir</button>
+            </div>
+
+            <button id="regresar-btn" class="btn btn-secondary">Regresar</button>
+        </div>
+    </div>
+
+    <!-- CONTENEDOR PRINCIPAL DEL FORMULARIO -->
+    <div class="main-container">
+        <div class="form-container">
+            <h1>ACTA DE APORTE DE INFORMACIÓN</h1>
+<form id="main-form" action="{{ url_for('serve_html_page', filename='acta.html') }}" method="GET" style="display:none;">
+    <input type="hidden" id="sesion_id_hidden" name="sesion_portal">
+    
+                <!-- INICIO DEL BLOQUE CORRECTO -->
+                <fieldset class="form-section">
+                    <legend>Datos de la Intervención</legend>
+                    <div class="intervention-layout">
+
+                        <!-- Primera Fila -->
+                        <div class="field-group fecha-group">
+                            <label for="fecha">Fecha:</label>
+                            <input type="date" id="fecha" name="fecha" required>
+                        </div>
+                        <div class="field-group hora-group">
+                            <label for="hora">Hora:</label>
+                            <input type="time" id="hora" name="hora" required>
+                        </div>
+                        <div class="field-group perito-group">
+                            <label for="perito">Perito:</label>
+                            <select id="perito" name="perito" required>
+                                <option value="">Seleccione...</option>
+                                <option>Oficial Ayudante P.P. PORTAZ Diego</option>
+                                <option>Auxiliar 3º P.P. CARMONA Daniel</option>
+                                <option>Auxiliar 1º P.P. LENCINA Adriana</option>
+                                <option>Auxiliar P.P. LANA Adrián</option>
+                            </select>
+                        </div>
+
+                        <!-- Segunda Fila -->
+                        <div class="field-group expediente-group-wrapper">
+                            <label for="expediente_prefijo">Nº de Expte:</label>
+                            <div class="expediente-group">
+                                <select id="expediente_prefijo" name="expediente_prefijo" onchange="toggleExpedienteOtro()"><option value="P-">P-</option><option value="T-">T-</option><option value="Otro">Otro</option></select>
+                                <div id="expediente_normal"><input type="text" id="expediente_numero" name="expediente_numero" placeholder="12345" required><input type="text" id="expediente_anio" name="expediente_anio" required></div>
+                                <input type="text" id="expediente_otro" name="expediente_otro" placeholder="Nº Completo">
+                            </div>
+                        </div>
+                        <div class="field-group fiscalia-group">
+                            <label for="fiscalia">Fiscalía/Oficina Fiscal:</label>
+                            <div>
+                                <select id="fiscalia" name="fiscalia" onchange="mostrarFiscaliaOtro()" required>
+                                    <option>Oficial Fiscal San Carlos Tunuyán</option><option>Oficina Fiscal Tupungato</option><option>Unidad Fiscal Valle de Uco</option><option>Fiscal Penal de Menores y Transito Valle de Uco</option><option>Juzgado Penal Colegiado de Tunuyan</option><option>Unidad Investigativa Tunuya</option><option>Unidad Investigativa San Carlos</option><option>Unidad Investigativa Tupungato</option><option>Otros</option>
+                                </select>
+                                <input type="text" id="fiscalia_otro" name="fiscalia_otro" placeholder="Especificar..." style="display:none; margin-top:8px;">
+                            </div>  
+                        </div>                     
+                    </div>
+                </fieldset>
+                <!-- FIN DEL BLOQUE CORRECTO -->
+                <fieldset class="form-section">
+                    <legend>Datos Personales del Aportante</legend>
+                    <div class="form-grid">
+                        <div class="field-group"><label for="apellido_paterno">Apellido Paterno:</label><input type="text" id="apellido_paterno" name="apellido_paterno" required></div>
+                        <div class="field-group"><label for="apellido_materno">Apellido Materno:</label><input type="text" id="apellido_materno" name="apellido_materno"></div>
+                        <div class="field-group"><label for="primer_nombre">Primer Nombre:</label><input type="text" id="primer_nombre" name="primer_nombre" required></div>
+                        <div class="field-group"><label for="segundo_nombre">Segundo Nombre:</label><input type="text" id="segundo_nombre" name="segundo_nombre"></div>
+                        <div class="field-group"><label for="nacionalidad">Nacionalidad:</label><input type="text" id="nacionalidad" name="nacionalidad" value="Argentina" required></div>
+                        <div class="field-group"><label for="lugar_nacimiento">Lugar de Nacimiento:</label><input type="text" id="lugar_nacimiento" name="lugar_nacimiento" required></div>
+                        <div class="field-group"><label for="fecha_nacimiento">Fecha de Nacimiento:</label><input type="date" id="fecha_nacimiento" name="fecha_nacimiento" required></div>
+                        <div class="field-group"><label for="estado_civil">Estado Civil:</label><select id="estado_civil" name="estado_civil" required><option value="">Seleccione...</option><option>Soltero/a</option><option>Casado/a</option><option>Viudo/a</option><option>Divorciado/a</option></select></div>
+                        <div class="field-group"><label for="nivel_alfabetizacion">Nivel de Alfabetización:</label><select id="nivel_alfabetizacion" name="nivel_alfabetizacion" required><option value="">Seleccione...</option><option>Alfabeto</option><option>Analfabeto</option><option>Solo Firma</option></select></div>
+                        <div class="field-group"><label for="profesion">Profesión:</label><input type="text" id="profesion" name="profesion" required></div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="form-section">
+                    <legend>Dirección</legend>
+                    <div class="form-grid">
+                    <div class="field-group"><label for="calle">Nombre de Calle:</label><input type="text" id="calle" name="calle" required></div>
+                    <div class="field-group"><label for="numeracion">Numeración:</label><input type="text" id="numeracion" name="numeracion" required></div>
+                    <div class="field-group"><label for="barrio">Barrio:</label><input type="text" id="barrio" name="barrio"></div>
+                    
+                    <!-- NUEVOS DESPLEGABLES DINÁMICOS -->
+                    <div class="field-group">
+                            <label for="provincia">Provincia:</label>
+                            <select id="provincia" name="provincia" required>
+                                <option value="">Cargando provincias...</option>
+                            </select>
+                    </div>
+                    <div class="field-group">
+                            <label for="departamento">Departamento:</label>
+                            <select id="departamento" name="departamento" required disabled>
+                                <option value="">Seleccione una provincia</option>
+                            </select>
+                    </div>
+                    <div class="field-group">
+                            <label for="ciudad">Ciudad/Localidad:</label>
+                            <select id="ciudad" name="ciudad" required disabled>
+                                <option value="">Seleccione un departamento</option>
+                            </select>
+                    </div>
+
+                    <!-- AÑADE ESTE NUEVO BLOQUE JUSTO DEBAJO -->
+                    <div id="otra_ciudad_container" class="field-group" style="display:none;">
+                        <label for="otra_ciudad">Especificar Localidad:</label>
+                        <input type="text" id="otra_ciudad" name="otra_ciudad" placeholder="Ingrese el nombre de la localidad">
+                    </div>
+                    <!-- === FIN DEL BLOQUE A AÑADIR/REEMPLAZAR === -->
+                </div>
+                </fieldset>
+                
+                 <fieldset class="form-section">
+                    <legend>Contacto</legend>
+                    <div class="form-grid">
+                        <div class="field-group"><label for="telefono_contacto">Teléfono:</label><input type="text" id="telefono_contacto" name="telefono_contacto"></div>
+                        <div class="field-group"><label for="email_contacto">Email:</label><input type="email" id="email_contacto" name="email_contacto"></div>
+                    </div>
+                </fieldset>
+
+                <fieldset class="form-section">
+                    <legend>Datos del Dispositivo</legend>
+                    <div class="field-group full-width">
+                        <label for="dispositivo">Tipo de Dispositivo:</label>
+                        <select id="dispositivo" name="dispositivo" onchange="mostrarCamposDispositivo()" required>
+                            <option value="">Seleccione...</option>
+                            <option value="telefono">Teléfono Celular</option>
+                            <option value="usb">Disco Extraíble USB</option>
+                            <option value="optico">Soporte Óptico</option>
+                            <option value="nube">Almacenamiento en la Nube</option>
+                        </select>
+                    </div>
+
+                    <!-- Teléfono (Estructura Corregida con form-grid) -->
+                    <div id="campos_telefono" style="display:none; margin-top:20px;">
+                        <div class="form-grid">
+                            <div class="field-group"><label for="marca_tel">Marca:</label><input type="text" id="marca_tel" name="marca_tel"></div>
+                            <div class="field-group"><label for="modelo_tel">Modelo:</label><input type="text" id="modelo_tel" name="modelo_tel"></div>
+                            <div class="field-group"><label for="color_tel">Color:</label><input type="text" id="color_tel" name="color_tel"></div>
+                            <div class="field-group"><label for="serie_tel">Nº Serie:</label><input type="text" id="serie_tel" name="serie_tel"></div>
+                            
+                            <div class="field-group"><label for="imei1">IMEI 1:</label><input type="text" id="imei1" name="imei1"></div>
+                            <div class="field-group"><label for="dual">¿Dual SIM?</label><select id="dual" name="dual" onchange="toggleDualSim()"><option value="no">No</option><option value="si">Sí</option></select></div>
+
+                            <div id="imei2-container" class="field-group" style="display:none;"><label for="imei2">IMEI 2:</label><input type="text" id="imei2" name="imei2"></div>
+
+                            <div class="field-group">
+                                <label for="sim1">SIM 1 Empresa:</label>
+                                <select id="sim1" name="sim1">
+                                    <option value="">Seleccione...</option><option value="No posee">No posee</option><option value="e-SIM">e-SIM</option><option value="Claro">Claro</option><option value="Movistar">Movistar</option><option value="Personal">Personal</option><option value="Tuenti">Tuenti</option><option value="Otro">Otro</option>
+                                </select>
+                            </div>
+                            <div id="sim2-container" class="field-group" style="display:none;">
+                                <label for="sim2">SIM 2 Empresa:</label>
+                                <select id="sim2" name="sim2">
+                                    <option value="">Seleccione...</option><option value="No posee">No posee</option><option value="e-SIM">e-SIM</option><option value="Claro">Claro</option><option value="Movistar">Movistar</option><option value="Personal">Personal</option><option value="Tuenti">Tuenti</option><option value="Otro">Otro</option>
+                                </select>
+                            </div>
+
+                            <!-- CAMBIO: Renombramos el campo original y añadimos el segundo -->
+                            <div class="field-group">
+                                <label for="telefono_asociado1">Número Tel. 1:</label>
+                                <input type="text" id="telefono_asociado1" name="telefono_asociado1">
+                            </div>
+                            <div id="telefono2-container" class="field-group" style="display:none;">
+                                <label for="telefono_asociado2">Número Tel. 2:</label>
+                                <input type="text" id="telefono_asociado2" name="telefono_asociado2">
+                            </div>
+                            
+                            <div class="field-group full-width"><label for="correo_tel">Correo asociado:</label><input type="email" id="correo_tel" name="correo_tel"></div>
+                            <div class="field-group full-width"><label for="obs_tel">Observaciones:</label><textarea id="obs_tel" name="obs_tel" rows="2"></textarea></div>
+                        </div>
+                    </div>
+
+                    <!-- USB (Estructura Corregida con form-grid) -->
+                    <div id="campos_usb" style="display:none; margin-top:20px;">
+                        <div class="form-grid">
+                            <div class="field-group"><label for="marca_usb">Marca:</label><input type="text" id="marca_usb" name="marca_usb"></div>
+                            <div class="field-group"><label for="capacidad_usb">Capacidad:</label><input type="text" id="capacidad_usb" name="capacidad_usb"></div>
+                            <div class="field-group full-width"><label for="serie_usb">Nº Serie:</label><input type="text" id="serie_usb" name="serie_usb"></div>
+                            <div class="field-group full-width"><label for="obs_usb">Observaciones:</label><textarea id="obs_usb" name="obs_usb" rows="2"></textarea></div>
+                        </div>
+                    </div>
+
+                    <!-- Óptico (Estructura Corregida con form-grid) -->
+                    <div id="campos_optico" style="display:none; margin-top:20px;">
+                        <div class="form-grid">
+                            <div class="field-group"><label for="tipo_optico">Tipo (CD/DVD):</label><input type="text" id="tipo_optico" name="tipo_optico"></div>
+                            <div class="field-group"><label for="capacidad_optico">Capacidad:</label><input type="text" id="capacidad_optico" name="capacidad_optico"></div>
+                            <div class="field-group full-width"><label for="obs_optico">Observaciones:</label><textarea id="obs_optico" name="obs_optico" rows="2"></textarea></div>
+                        </div>
+                    </div>
+
+                    <!-- Nube (Estructura Corregida con form-grid) -->
+                    <div id="campos_nube" style="display:none; margin-top:20px;">
+                        <div class="form-grid">
+                            <div class="field-group"><label for="url_nube">Dirección/URL:</label><input type="url" id="url_nube" name="url_nube"></div>
+                            <div class="field-group"><label for="correo_nube">Correo asociado:</label><input type="email" id="correo_nube" name="correo_nube"></div>
+                            <div class="field-group full-width"><label for="obs_nube">Observaciones:</label><textarea id="obs_nube" name="obs_nube" rows="2"></textarea></div>
+                        </div>
+                    </div>
+                </fieldset>
+                <fieldset class="form-section">
+                    <legend>Tarea y Envío</legend>
+                    <div class="field-group full-width"><label for="tarea">Tarea Realizada:</label><textarea id="tarea" name="tarea" rows="3" required></textarea></div>
+                    <div class="field-group full-width"><label for="enviar">Enviado mediante:</label><input list="opcionesEnvio" id="enviar" name="enviar" required><datalist id="opcionesEnvio"><option>correo electrónico</option><option>Quick Share</option><option>Bluetooth</option></datalist></div>
+                </fieldset>
+
+                <div class="form-buttons">
+                    <button type="button" class="btn btn-primary generar-acta">Generar Acta</button>
+                    <button type="button" class="btn btn-secondary limpiar-campos">Limpiar</button>
+                    <button type="button" class="btn btn-warning menu-principal">Menú</button>
+                    <button type="button" class="btn btn-danger finalizar-caso">Finalizar</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="viewer-container">
+            <h3 id="viewer-title">Visor de Evidencia</h3>
+            <div id="viewer-status"><p>Seleccione o cree un caso para comenzar.</p></div>
+                <table id="files-table" class="files-table" style="display:none;">
+                    <thead>
+                        <tr>
+                            <th>Tipo</th>
+                            <th>Nombre</th>
+                            <th>Tamaño</th>
+                            <th>SHA256</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="files-tbody"></tbody>
+                </table>
+        </div>
+
+        <!-- Modal para previsualización de archivos -->
+        <div id="filePreviewModal" class="modal" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.4);">
+            <div class="modal-content" style="background-color: #fefefe; margin: 5% auto; padding: 20px; border: 1px solid #888; width: 90%; max-width: 800px; border-radius: 8px;">
+                <div class="modal-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h2 id="modalTitle">Previsualización de Archivo</h2>
+                    <span class="close" onclick="closeFilePreview()" style="color: #aaa; font-size: 28px; font-weight: bold; cursor: pointer;">&times;</span>
+                </div>
+                <div id="modalContent" style="text-align: center; min-height: 400px;">
+                    <p>Cargando...</p>
+                </div>
+                <div class="modal-footer" style="margin-top: 20px; text-align: center;">
+                    <button onclick="closeFilePreview()" class="btn btn-secondary">Cerrar</button>
+                    <button id="downloadBtn" onclick="downloadFile()" class="btn btn-primary" style="display: none;">Descargar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<script src="{{ url_for('static', filename='utils.js') }}}"></script>
+<script>
+        // Detección automática de dispositivo
+        function detectDevice() {
+            const userAgent = navigator.userAgent;
+            const screenWidth = window.innerWidth;
+            const screenHeight = window.innerHeight;
+            
+            // Detectar si es móvil
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent) || 
+                           (screenWidth <= 768 && screenHeight > screenWidth);
+            
+            // Detectar si es tablet
+            const isTablet = /iPad|Android(?=.*\bMobile\b)(?=.*\bSafari\b)/i.test(userAgent) || 
+                           (screenWidth > 768 && screenWidth <= 1024);
+            
+            // Detectar si es PC
+            const isPC = !isMobile && !isTablet;
+            
+            return {
+                isMobile,
+                isTablet,
+                isPC,
+                screenWidth,
+                screenHeight
+            };
+        }
+        
+        // Aplicar layout según dispositivo
+        function applyDeviceLayout() {
+            const device = detectDevice();
+            const formContainer = document.querySelector('.form-container');
+            const viewerContainer = document.querySelector('.viewer-container');
+            
+            if (device.isMobile) {
+                // En móviles: formulario arriba, visor abajo (oculto por defecto)
+                formContainer.style.gridTemplateColumns = '1fr';
+                formContainer.style.gridTemplateRows = 'auto auto';
+                formContainer.style.gap = '20px';
+                
+                if (viewerContainer) {
+                    viewerContainer.classList.remove('show-mobile');
+                    // Agregar botón para mostrar/ocultar visor
+                    addViewerToggle();
+                }
+            } else if (device.isTablet) {
+                // En tablets: layout de 2 columnas con visor más pequeño
+                formContainer.style.gridTemplateColumns = '2fr 1fr';
+                formContainer.style.gridTemplateRows = '1fr';
+                formContainer.style.gap = '20px';
+                
+                if (viewerContainer) {
+                    viewerContainer.style.display = 'block';
+                    viewerContainer.style.maxWidth = '300px';
+                }
+            } else {
+                // En PC: layout original de 2 columnas
+                formContainer.style.gridTemplateColumns = '1fr 350px';
+                formContainer.style.gridTemplateRows = '1fr';
+                formContainer.style.gap = '30px';
+                
+                if (viewerContainer) {
+                    viewerContainer.style.display = 'block';
+                    viewerContainer.style.maxWidth = '350px';
+                }
+            }
+        }
+        
+        // Agregar botón para mostrar/ocultar visor en móviles
+        function addViewerToggle() {
+            const existingToggle = document.querySelector('.viewer-toggle');
+            if (existingToggle) return;
+            
+            const toggleBtn = document.createElement('button');
+            toggleBtn.className = 'btn btn-info viewer-toggle';
+            toggleBtn.innerHTML = '👁️ Mostrar/Ocultar Visor';
+            toggleBtn.style.width = '100%';
+            toggleBtn.style.marginBottom = '20px';
+            
+            const formContainer = document.querySelector('.form-container');
+            formContainer.insertBefore(toggleBtn, formContainer.firstChild);
+            
+            toggleBtn.addEventListener('click', function() {
+                const viewerContainer = document.querySelector('.viewer-container');
+                if (viewerContainer) {
+                    const isShown = viewerContainer.classList.toggle('show-mobile');
+                    if (isShown) {
+                        viewerContainer.style.gridColumn = '1 / -1';
+                        viewerContainer.style.marginTop = '20px';
+                        toggleBtn.innerHTML = '👁️ Ocultar Visor';
+                    } else {
+                        toggleBtn.innerHTML = '👁️ Mostrar Visor';
+                    }
+                }
+            });
+        }
+        
+        // Variables globales
+        let currentSessionId = null;
+        let pollingInterval = null;
+
+    // --- LÓGICA DEL MODAL ---
+    async function crearCaso() {
+        const caseName = document.getElementById('case-name-input').value.trim();
+        const expediente = document.getElementById('expediente-input-modal').value.trim();
+        if (!caseName || !expediente) return alert('Por favor, ingrese nombre y expediente del caso.');
+
+        const createBtn = document.getElementById('create-case-btn');
+        createBtn.disabled = true; createBtn.innerText = "Creando...";
+
+        try {
+            const response = await fetch(`${API_URL}/crear_sesion`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nombre_caso: caseName, expediente: expediente })
+            });
+            if (!response.ok) throw new Error('Error del servidor al crear sesión.');
+            
+            const data = await response.json();
+            currentSessionId = data.sesion_id;
+
+            document.getElementById('portal-link').innerText = `${window.location.origin}/portal/${currentSessionId}`;
+            document.getElementById('portal-link-container').style.display = 'block';
+            document.getElementById('case-name-input').disabled = true;
+            document.getElementById('expediente-input-modal').disabled = true;
+            createBtn.style.display = 'none';
+        } catch (error) {
+            console.error("Error al crear el caso:", error);
+            mostrarNotificacion('No se pudo crear el caso. Verifique que el servidor esté activo.', 'error');
+            createBtn.disabled = false; createBtn.innerText = "Crear y Activar Portal";
+        }
+    }
+
+    async function cargarListasDeCasos() {
+        try {
+            const [activosRes, finalizadosRes] = await Promise.all([
+                fetch(`${API_URL}/casos_activos`), fetch(`${API_URL}/casos_finalizados`)
+            ]);
+            if (!activosRes.ok || !finalizadosRes.ok) throw new Error("Error cargando listas");
+
+            const activos = await activosRes.json();
+            const finalizados = await finalizadosRes.json();
+
+            const populateSelect = (selectId, casos, defaultText) => {
+                const select = document.getElementById(selectId);
+                select.innerHTML = casos.length ? `<option value="">${defaultText}</option>` : `<option value="">No hay casos</option>`;
+                casos.forEach(c => select.innerHTML += `<option value="${c.sesion_id}">${c.nombre_caso} (${c.sesion_id.substring(0,8)}...)</option>`);
+            };
+            populateSelect('select-caso-activo', activos, 'Seleccione un caso activo...');
+            populateSelect('select-caso-finalizado', finalizados, 'Seleccione un caso finalizado...');
+        } catch (e) {
+            console.error('No se pudieron cargar listas de casos', e);
+            mostrarNotificacion('Error al cargar listas de casos.', 'error');
+        }
+    }
+
+    function iniciarInterfazDeCaso(sesion, nombreCaso = '') {
+        currentSessionId = sesion;
+        document.getElementById('case-modal').style.display = 'none';
+        document.querySelector('.main-container').style.display = 'flex';
+        document.getElementById('main-form').style.display = 'block';
+        document.getElementById('sesion_id_hidden').value = currentSessionId;
+        const titulo = nombreCaso || document.querySelector(`#select-caso-activo option[value="${sesion}"]`)?.textContent || sesion;
+        document.getElementById('viewer-title').innerText = `Visor: ${titulo}`;
+        document.getElementById('viewer-status').innerHTML = `<p>Portal activo. Esperando archivos...</p>`;
+        startPollingForFiles();
+    }
+
+    // --- LÓGICA DEL VISOR DE ARCHIVOS ---
+    
+    // Aplicar layout inicial y escuchar cambios de tamaño
+    document.addEventListener('DOMContentLoaded', function() {
+        applyDeviceLayout();
+        
+        // Aplicar layout cuando cambie el tamaño de la ventana
+        window.addEventListener('resize', function() {
+            applyDeviceLayout();
+        });
+    });
+    
+    function getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) return '🖼️';
+        if (['mp4', 'avi', 'mkv', 'mov'].includes(ext)) return '🎞️';
+        if (['mp3', 'wav', 'ogg'].includes(ext)) return '🎵';
+        if (ext === 'pdf') return '📄';
+        if (['zip', 'rar', '7z'].includes(ext)) return '🗜️';
+        return '📁';
+    }
+
+    async function fetchFiles() {
+        if (!currentSessionId) return;
+        try {
+            const response = await fetch(`${API_URL}/archivos/${currentSessionId}`);
+            if (!response.ok) throw new Error('Error de red');
+            
+            const files = await response.json();
+            const tbody = document.getElementById('files-tbody');
+            tbody.innerHTML = '';
+            const hasFiles = files.length > 0;
+            document.getElementById('viewer-status').style.display = hasFiles ? 'none' : 'block';
+            document.getElementById('files-table').style.display = hasFiles ? 'table' : 'none';
+
+            files.forEach(file => {
+                const sizeMB = (file.size / 1048576).toFixed(2);
+                const fileExt = file.nombre.split('.').pop().toLowerCase();
+                const canPreview = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'pdf', 'mp4', 'webm', 'mov', 'mp3', 'wav', 'ogg'].includes(fileExt);
+                
+                tbody.innerHTML += `
+                    <tr>
+                        <td class="file-icon">${getFileIcon(file.nombre)}</td>
+                        <td><a href="/casos_data/${currentSessionId}/${file.nombre}" target="_blank">${file.nombre}</a></td>
+                        <td>${sizeMB} MB</td>
+                        <td class="hash-cell">${file.hash}</td>
+                        <td>
+                            ${canPreview ? `<button type="button" class="btn btn-info" onclick="previewFile('${file.nombre}', '${fileExt}')" style="min-width:auto; padding: 5px 10px; margin-right: 5px;">👁️</button>` : ''}
+                            <button type="button" class="btn btn-danger" onclick="deleteFile('${file.nombre}')" style="min-width:auto; padding: 5px 10px;">X</button>
+                        </td>
+                    </tr>`;
+            });
+        } catch (error) {
+            console.error("Error en fetchFiles:", error);
+            if (pollingInterval) clearInterval(pollingInterval);
+            document.getElementById('viewer-status').innerHTML = `<p style="color: red;">Error de conexión. Actualización detenida.</p>`;
+        }
+    }
+    
+    async function deleteFile(filename) {
+        if (!currentSessionId || !confirm(`¿Seguro que desea eliminar "${filename}"?`)) return;
+        try {
+            const response = await fetch(`${API_URL}/eliminar/${currentSessionId}/${encodeURIComponent(filename)}`, { method: 'DELETE' });
+            if (!response.ok) throw new Error('Error del servidor al eliminar.');
+            await fetchFiles();
+            mostrarNotificacion(`"${filename}" eliminado.`, 'success');
+        } catch (error) {
+            console.error("Error al eliminar:", error);
+            mostrarNotificacion('No se pudo eliminar el archivo.', 'error');
+        }
+    }
+
+    function startPollingForFiles() {
+        if (pollingInterval) clearInterval(pollingInterval);
+        fetchFiles();
+        pollingInterval = setInterval(fetchFiles, 5000);
+    }
+    
+    // --- LÓGICA DEL FORMULARIO ---
+    function limpiarCampos() {
+        document.getElementById('main-form').reset();
+        cargarFechaHora();
+        mostrarCamposDispositivo();
+        toggleExpedienteOtro();
+        mostrarFiscaliaOtro();
+    }
+
+    function cargarFechaHora() {
+        const ahora = new Date();
+        document.getElementById("fecha").value = ahora.toISOString().split('T')[0];
+        document.getElementById("hora").value = ahora.toTimeString().substring(0, 5);
+    }
+
+    function mostrarCamposDispositivo() {
+        const tipo = document.getElementById("dispositivo").value;
+        ['telefono', 'usb', 'optico', 'nube'].forEach(id => {
+            document.getElementById(`campos_${id}`).style.display = (tipo === id) ? "block" : "none";
+        });
+    }
+
+function toggleDualSim() {
+    const esDualSim = document.getElementById("dual").value === "si";
+    
+    // Muestra u oculta el campo IMEI 2
+    document.getElementById("imei2-container").style.display = esDualSim ? "grid" : "none";
+    
+    // Muestra u oculta el campo SIM 2
+    document.getElementById("sim2-container").style.display = esDualSim ? "grid" : "none";
+
+    // MUESTRA U OCULTA EL CAMPO TELÉFONO 2
+    document.getElementById("telefono2-container").style.display = esDualSim ? "grid" : "none";
+
+    // Cambia las etiquetas para mayor claridad
+    const labelSim1 = document.querySelector('label[for="sim1"]');
+    const labelTel1 = document.querySelector('label[for="telefono_asociado1"]');
+
+    if (labelSim1) {
+        labelSim1.textContent = esDualSim ? "SIM 1 Empresa:" : "SIM Empresa:";
+    }
+    if (labelTel1) {
+        labelTel1.textContent = esDualSim ? "Número Tel. 1:" : "Número Tel.:";
+    }
+}
+    function toggleExpedienteOtro() {
+        const esOtro = document.getElementById("expediente_prefijo").value === "Otro";
+        document.getElementById("expediente_normal").style.display = esOtro ? "none" : "flex";
+        document.getElementById("expediente_otro").style.display = esOtro ? "inline-block" : "none";
+        document.getElementById("expediente_otro").required = esOtro;
+        document.getElementById("expediente_numero").required = !esOtro;
+    }
+
+    function mostrarFiscaliaOtro() {
+        document.getElementById("fiscalia_otro").style.display = (document.getElementById("fiscalia").value === "Otros") ? "block" : "none";
+    }
+    
+    // --- GUARDADO, CARGA Y GENERACIÓN ---
+    async function guardarDatosFormulario() {
+        if (!currentSessionId) return false;
+        const datosFormulario = Object.fromEntries(new FormData(document.getElementById('main-form')));
+        try {
+            const response = await fetch(`${API_URL}/guardar_datos_caso/${currentSessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosFormulario)
+            });
+            return response.ok;
+        } catch (error) { console.error('Error al guardar:', error); return false; }
+    }
+
+    async function cargarDatosDelServidor(desdeAPI) {
+        const params = new URLSearchParams(window.location.search);
+        let datos = {};
+        if (desdeAPI) {
+            const response = await fetch(`${API_URL}/datos_caso/${currentSessionId}`);
+            if (response.ok) datos = await response.json();
+        } else {
+            params.forEach((value, key) => datos[key] = value);
+        }
+        
+        // Convertir nombres a IDs para provincia, departamento y localidad si venimos de modificación
+        if (params.get('modificando') === 'true') {
+            if (datos.provincia && provinciasData.provincias) {
+                const provincia = provinciasData.provincias.find(p => p.nombre === datos.provincia);
+                if (provincia) datos.provincia = provincia.id;
+            }
+            if (datos.departamento && departamentosData.departamentos) {
+                const departamento = departamentosData.departamentos.find(d => d.nombre === datos.departamento);
+                if (departamento) datos.departamento = departamento.id;
+            }
+            // La ciudad/localidad ya es nombre, no necesita conversión
+        }
+        
+        for (const key in datos) {
+            const el = document.getElementById(key);
+            if (el) el.value = datos[key];
+        }
+        toggleExpedienteOtro(); mostrarFiscaliaOtro(); mostrarCamposDispositivo(); toggleDualSim();
+    }
+          // --- GENERACIÓN DE ACTA Y FINALIZACIÓN ---
+async function generarActaConArchivos() {
+    const form = document.getElementById('main-form');
+    if (!currentSessionId) {
+        return alert('Debe crear o continuar un caso antes de generar el acta.');
+    }
+    if (!form.checkValidity()) {
+        form.reportValidity(); // Esto mostrará al usuario qué campos faltan
+        return alert('Por favor, complete todos los campos requeridos.');
+    }
+
+    // Primero, nos aseguramos de que los últimos datos del formulario estén guardados
+    await guardarDatosFormulario();
+
+    try {
+        // 1. OBTENER LISTA DE ARCHIVOS DESDE LA API
+        const archivosResponse = await fetch(`${API_URL}/archivos/${currentSessionId}`);
+        if (!archivosResponse.ok) throw new Error('Error al verificar archivos del caso.');
+        const files = await archivosResponse.json();
+
+        // Limpiar campos ocultos de ejecuciones anteriores para no acumularlos
+        form.querySelectorAll('input[type="hidden"][data-generated="true"]').forEach(el => el.remove());
+
+        // 2. COMPONER EL NÚMERO DE EXPEDIENTE COMPLETO
+        let expedienteCompleto = form.expediente_prefijo.value === 'Otro'
+            ? form.expediente_otro.value.trim()
+            : `${form.expediente_prefijo.value}${form.expediente_numero.value.trim()}${form.expediente_anio.value.trim()}`;
+
+        const addHiddenField = (name, value) => {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = name;
+            input.value = value;
+            input.dataset.generated = 'true'; // Marcador para poder limpiarlo después
+            form.appendChild(input);
+        };
+
+        // 3. SI HAY ARCHIVOS, LLAMAR A LA API PARA CREAR/REEMPLAZAR EL ZIP
+        if (files.length > 0) {
+            const compressResponse = await fetch(`${API_URL}/crear_comprimido/${currentSessionId}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ expediente: expedienteCompleto }) // El backend ya usa el expediente guardado
+            });
+            if (!compressResponse.ok) throw new Error('Error al crear archivo comprimido.');
+            
+            let compressData = await compressResponse.json();
+
+            // Si el archivo ya existía, preguntamos al usuario
+            if (compressData.existe) {
+                const confirmar = confirm(`${compressData.mensaje}\n\n¿Desea reemplazarlo?`);
+                if (confirmar) {
+                    const replaceResponse = await fetch(`${API_URL}/reemplazar_comprimido/${currentSessionId}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ expediente: expedienteCompleto })
+                    });
+                    if (!replaceResponse.ok) throw new Error('Error al reemplazar archivo comprimido.');
+                    compressData = await replaceResponse.json(); // Actualizamos con los datos del nuevo archivo
+                } else {
+                    // Si el usuario no quiere reemplazar, usamos los datos del archivo existente
+                    addHiddenField('hash_comprimido', compressData.hash_existente);
+                    addHiddenField('nombre_zip', compressData.archivo_existente);
+                }
+            }
+            
+            // Si no existía, o si se reemplazó, añadimos los nuevos datos
+            if (!compressData.existe || (compressData.existe && confirmar)) {
+                 addHiddenField('hash_comprimido', compressData.hash);
+                 addHiddenField('nombre_zip', compressData.archivo_comprimido);
+            }
+        }
+
+        // 4. CONSTRUIR LA URL Y REDIRIGIR
+        const finalFormData = new FormData(form);
+        const urlParams = new URLSearchParams();
+        for (let [key, value] of finalFormData.entries()) {
+            urlParams.append(key, value);
+        }
+        
+        urlParams.set('expediente_completo', expedienteCompleto);
+        
+        // La acción del formulario ya apunta a la URL correcta, así que podemos simplemente hacer submit
+        // O construir la URL manualmente usando la acción del formulario
+        window.location.href = `${form.action}?${urlParams.toString()}`;
+        
+    } catch (error) {
+        console.error('Error al generar acta:', error);
+        mostrarNotificacion(`Error al procesar los archivos: ${error.message}`, 'error');
+    }
+}
+
+
+// --- LÓGICA PARA DESPLEGABLES DE DIRECCIÓN DINÁMICOS (Versión Final) ---
+
+let provinciasData = {};
+let departamentosData = {};
+let localidadesData = {};
+
+const provinciaSelect = document.getElementById("provincia");
+const departamentoSelect = document.getElementById("departamento");
+const ciudadSelect = document.getElementById("ciudad");
+const otraCiudadContainer = document.getElementById("otra_ciudad_container");
+const otraCiudadInput = document.getElementById("otra_ciudad");
+
+async function inicializarDesplegablesGeograficos() {
+    try {
+        [provinciasData, departamentosData, localidadesData] = await Promise.all([
+            fetch("{{ url_for('static', filename='data/provincias.json') }}}").then(r => r.json()),
+            fetch("{{ url_for('static', filename='data/departamentos.json') }}}").then(r => r.json()),
+            fetch("{{ url_for('static', filename='data/localidades_censales.json') }}}").then(r => r.json())
+        ]);
+
+        provinciaSelect.innerHTML = "<option value=''>Seleccione provincia...</option>";
+        provinciasData.provincias.forEach(p => {
+            provinciaSelect.innerHTML += `<option value="${p.id}">${p.nombre}</option>`;
+        });
+
+        // Si no venimos de una modificación, seleccionar Mendoza por defecto
+        const params = new URLSearchParams(window.location.search);
+        const esModificacion = params.get('modificando') === 'true';
+        
+        if (!esModificacion) {
+            const mendoza = provinciasData.provincias.find(p => p.nombre === 'Mendoza');
+            if (mendoza) {
+                provinciaSelect.value = mendoza.id;
+                provinciaSelect.dispatchEvent(new Event('change'));
+            }
+        } else {
+            // Si venimos de modificación, esperar a que se carguen los datos desde la URL
+            setTimeout(() => {
+                if (provinciaSelect.value) {
+                    provinciaSelect.dispatchEvent(new Event('change'));
+                    setTimeout(() => {
+                        if (departamentoSelect.value) {
+                            departamentoSelect.dispatchEvent(new Event('change'));
+                            setTimeout(() => {
+                                if (ciudadSelect.value === "otra") {
+                                    otraCiudadContainer.style.display = "grid";
+                                    otraCiudadInput.required = true;
+                                }
+                            }, 100);
+                        }
+                    }, 100);
+                }
+            }, 500);
+        }
+    } catch (error) {
+        console.error("Error fatal al cargar datos geográficos:", error);
+        provinciaSelect.innerHTML = "<option>Error al cargar</option>";
+    }
+}
+
+function cargarDepartamentos(provinciaId) { // Recibe 'provinciaId'
+    departamentoSelect.innerHTML = "<option value=''>Seleccione departamento...</option>";
+    ciudadSelect.innerHTML = "<option value=''>Seleccione localidad...</option>";
+    departamentoSelect.disabled = true;
+    ciudadSelect.disabled = true;
+    otraCiudadContainer.style.display = "none";
+
+    if (!provinciaId) return; // CORREGIDO: Comprueba 'provinciaId'
+
+    const deptosFiltrados = departamentosData.departamentos.filter(d => d.provincia.id === provinciaId);
+    
+    if (deptosFiltrados.length > 0) {
+        deptosFiltrados.forEach(d => {
+            departamentoSelect.innerHTML += `<option value="${d.id}">${d.nombre}</option>`;
+        });
+        departamentoSelect.disabled = false;
+    }
+}
+
+function cargarLocalidades(departamentoId) {
+    ciudadSelect.innerHTML = '<option value="">Seleccione una localidad</option>';
+    ciudadSelect.disabled = true;
+    otraCiudadContainer.style.display = "none"; 
+    otraCiudadInput.value = "";
+
+    if (!departamentoId) return;
+
+    const locsFiltradas = localidadesData.localidades_censales.filter(l => l.departamento.id === departamentoId);
+    
+    if (locsFiltradas.length > 0) {
+        locsFiltradas.forEach(l => {
+            ciudadSelect.innerHTML += `<option value="${l.nombre}">${l.nombre}</option>`;
+        });
+    }
+    
+    ciudadSelect.innerHTML += `<option value="otra">Otra...</option>`;
+    ciudadSelect.disabled = false;
+}
+
+provinciaSelect.addEventListener("change", () => {
+    cargarDepartamentos(provinciaSelect.value);
+});
+
+departamentoSelect.addEventListener("change", () => {
+    cargarLocalidades(departamentoSelect.value);
+});
+
+ciudadSelect.addEventListener("change", () => {
+    if (ciudadSelect.value === "otra") {
+        otraCiudadContainer.style.display = "grid";
+        otraCiudadInput.required = true;
+        otraCiudadInput.focus();
+    } else {
+        otraCiudadContainer.style.display = "none";
+        otraCiudadInput.required = false;
+        otraCiudadInput.value = "";
+    }
+});
+    
+    // --- LÓGICA DE INICIALIZACIÓN DEL RESTO DE LA PÁGINA ---
+    document.addEventListener("DOMContentLoaded", () => {
+    const form = document.getElementById('main-form');
+    const params = new URLSearchParams(window.location.search);
+
+    if (params.get('sesion_portal') && params.get('modificando') === 'true') {
+        iniciarInterfazDeCaso(params.get('sesion_portal'));
+        cargarDatosDelServidor(false);
+    } else {
+        document.getElementById('case-modal').style.display = 'flex';
+        document.querySelector('.main-container').style.display = 'none';
+        cargarListasDeCasos();
+        cargarFechaHora();
+        document.getElementById("expediente_anio").value = `/${new Date().getFullYear().toString().slice(-2)}`;
+    }
+    
+    // Asignación de Eventos
+    document.getElementById('create-case-btn').addEventListener('click', crearCaso);
+    document.getElementById('continuar-caso-btn').addEventListener('click', () => {
+        const sesion = document.getElementById('select-caso-activo').value;
+        if (sesion) {
+            iniciarInterfazDeCaso(sesion);
+            cargarDatosDelServidor(true);
+        }
+    });
+    document.getElementById('reabrir-caso-btn').addEventListener('click', async () => {
+        const sesion = document.getElementById('select-caso-finalizado').value;
+        if (!sesion) return alert('Seleccione un caso.');
+        await fetch(`${API_URL}/reabrir_caso/${sesion}`, { method: 'POST' });
+        await cargarListasDeCasos();
+        iniciarInterfazDeCaso(sesion);
+        cargarDatosDelServidor(true);
+    });
+    document.getElementById('close-modal-btn').addEventListener('click', () => {
+        const caseName = document.getElementById('case-name-input').value.trim();
+        iniciarInterfazDeCaso(currentSessionId, caseName);
+        guardarDatosFormulario();
+    });
+    document.getElementById('regresar-btn').addEventListener('click', () => { window.location.href = "{{ url_for('index') }}"; });
+    
+    form.querySelector('.generar-acta').addEventListener('click', generarActaConArchivos);
+    form.querySelector('.limpiar-campos').addEventListener('click', limpiarCampos);
+    form.querySelector('.menu-principal').addEventListener('click', () => { window.location.href = "{{ url_for('index') }}"; });
+    form.querySelector('.finalizar-caso').addEventListener('click', () => finalizarCaso(currentSessionId));   
+    
+    inicializarDesplegablesGeograficos();
+    });  
+
+    // --- FUNCIONES DE PREVISUALIZACIÓN ---
+    let currentPreviewFile = null;
+
+    function previewFile(filename, fileExt) {
+        if (!currentSessionId) return;
+        
+        currentPreviewFile = filename;
+        const modal = document.getElementById('filePreviewModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const modalContent = document.getElementById('modalContent');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        modalTitle.textContent = `Previsualización: ${filename}`;
+        modalContent.innerHTML = '<p>Cargando...</p>';
+        modal.style.display = 'block';
+        
+        const fileUrl = `/casos_data/${currentSessionId}/${encodeURIComponent(filename)}`;
+        let htmlContent = '';
+        
+        if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+            htmlContent = `<img src="${fileUrl}" class="img-fluid" style="max-width: 100%; max-height: 500px;" alt="${filename}">`;
+        } else if (['mp4', 'webm', 'mov'].includes(fileExt)) {
+            htmlContent = `<video src="${fileUrl}" controls style="max-width: 100%; max-height: 500px;"></video>`;
+        } else if (['mp3', 'wav', 'ogg'].includes(fileExt)) {
+            htmlContent = `<audio src="${fileUrl}" controls style="width: 100%;"></audio>`;
+        } else if (fileExt === 'pdf') {
+            htmlContent = `<iframe src="${fileUrl}" style="width: 100%; height: 500px;" frameborder="0"></iframe>`;
+        } else {
+            htmlContent = `<p>No hay previsualización disponible para este tipo de archivo.</p>`;
+        }
+        
+        modalContent.innerHTML = htmlContent;
+        downloadBtn.style.display = 'block';
+    }
+
+    function closeFilePreview() {
+        const modal = document.getElementById('filePreviewModal');
+        const modalContent = document.getElementById('modalContent');
+        const downloadBtn = document.getElementById('downloadBtn');
+        
+        // Pausar cualquier media que esté reproduciéndose
+        const media = modalContent.querySelector('video, audio');
+        if (media) {
+            media.pause();
+        }
+        
+        modal.style.display = 'none';
+        modalContent.innerHTML = '<p>Cargando...</p>';
+        downloadBtn.style.display = 'none';
+        currentPreviewFile = null;
+    }
+
+    function downloadFile() {
+        if (currentPreviewFile && currentSessionId) {
+            const fileUrl = `/casos_data/${currentSessionId}/${encodeURIComponent(currentPreviewFile)}`;
+            const link = document.createElement('a');
+            link.href = fileUrl;
+            link.download = currentPreviewFile;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    }
+
+    // Cerrar modal al hacer clic fuera de él
+    window.onclick = function(event) {
+        const modal = document.getElementById('filePreviewModal');
+        if (event.target === modal) {
+            closeFilePreview();
+        }
+    }
+    
+</script>
+</body>
+</html>

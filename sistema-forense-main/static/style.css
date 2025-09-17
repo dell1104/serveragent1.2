@@ -1,0 +1,2449 @@
+/* ==========================================================================
+   SISTEMA DE ACTAS - HOJA DE ESTILOS CENTRALIZADA (VERSIÓN FINALÍSIMA)
+   ========================================================================== */
+
+/* --- 1. ESTILOS GLOBALES --- */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background-color: #e9ecef; /* Fondo gris claro general */
+    margin: 0;
+    padding: 20px;
+    box-sizing: border-box;
+}
+h1, h2, h3 { color: #333; text-align: center; margin-bottom: 20px; font-weight: 600; }
+.container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+a { color: #007bff; text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* --- 2. SISTEMA DE BOTONES --- */
+.btn {
+    display: inline-block; padding: 12px 25px; margin: 5px; border: none; border-radius: 8px;
+    font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s ease;
+    text-transform: uppercase; letter-spacing: 0.8px; color: white !important; text-align: center; text-decoration: none;
+}
+.btn:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.btn-primary { background: #007bff; }
+.btn-secondary { background: #6c757d; }
+.btn-success { background: #28a745; }
+.btn-danger { background: #dc3545; }
+.btn-warning { background: #ffc107; color: #000 !important; }
+.btn-info { background: #17a2b8; }
+.btn-purple { background: #6f42c1; }
+.btn-audio { background: #e91e63; }
+
+
+/* --- 3. PÁGINA: INDEX (MENÚ PRINCIPAL) --- */
+body.menu-page {
+    background-image: url('image2.png');
+    background-position: center;
+    background-size: cover;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+}
+.menu-container {
+    background: rgba(255, 255, 255, 0.98);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+.menu-container h1 {
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #2c3e50;
+}
+.menu-container .btn {
+    display: block;
+    width: 300px;
+    margin: 18px auto;
+    font-size: 16px;
+    padding: 15px;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    text-align: center;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    border: 2px solid transparent;
+}
+
+.menu-container .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.5);
+}
+
+/* Información del usuario */
+.user-info {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 25px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.user-info h2 {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 1.4em;
+    font-weight: 600;
+}
+
+.user-role, .user-email {
+    margin: 8px 0;
+    color: #495057;
+    font-size: 0.95em;
+    font-weight: 500;
+}
+
+.role-badge {
+    display: inline-block;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.role-admin {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    border-color: #bd2130;
+}
+
+.role-usuario {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-color: #1e7e34;
+}
+
+.role-perito {
+    background: linear-gradient(135deg, #ffc107, #ffb300);
+    color: #000;
+    border-color: #e0a800;
+}
+
+/* Footer del menú */
+.menu-footer {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.menu-footer .btn {
+    background: #dc3545;
+    border: 1px solid #c82333;
+    color: white !important;
+    backdrop-filter: blur(10px);
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.menu-footer .btn:hover {
+    background: #c82333;
+    border-color: #bd2130;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(220, 53, 69, 0.4);
+}
+
+/* --- 4. PÁGINA: FORMULARIO ACTA --- */
+
+/* Estilos para modales de previsualización */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 800px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 10px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+    font-size: 1.5rem;
+}
+
+.close {
+    color: #aaa;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.close:hover {
+    color: #000;
+}
+
+.modal-footer {
+    margin-top: 20px;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+    padding-top: 15px;
+}
+
+/* Estilos para la tabla de archivos */
+.files-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.files-table th {
+    background: #f8f9fa;
+    padding: 12px;
+    text-align: left;
+    font-weight: 600;
+    color: #495057;
+    border-bottom: 2px solid #dee2e6;
+}
+
+.files-table td {
+    padding: 12px;
+    border-bottom: 1px solid #dee2e6;
+    vertical-align: middle;
+}
+
+.files-table tr:hover {
+    background-color: #f8f9fa;
+}
+
+.file-icon {
+    font-size: 1.2em;
+    text-align: center;
+}
+
+.hash-cell {
+    font-family: monospace;
+    font-size: 0.8em;
+    word-break: break-all;
+    max-width: 200px;
+}
+.main-container {
+    display: flex; gap: 20px; width: 98vw; height: 95vh; margin: auto; align-items: stretch;
+}
+.form-container {
+    flex: 0 0 55%; /* <<< CAMBIO CLAVE: Reducimos el espacio del formulario */
+    background: white; padding: 1.5cm; border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08); overflow-y: auto;
+}
+.viewer-container {
+    flex: 1; /* <<< CAMBIO CLAVE: El visor ahora ocupará el 45% restante */
+    background: white; padding: 20px; border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+}
+.form-container h1 {
+    font-size: 1.6em; margin-bottom: 25px; color: #333;
+}
+.form-section {
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px; /* <<< CAMBIO CLAVE: Reducimos el margen entre secciones */
+    background-color: #fcfdff;
+}
+.form-section h3 {
+    font-size: 1.1em; color: #0056b3; text-align: left;
+    border-bottom: 1px solid #dee2e6; padding-bottom: 10px; margin-bottom: 20px;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px 25px; /* <<< CAMBIO CLAVE: Reducimos el espacio vertical entre filas */
+}
+.field-group {
+    display: grid;
+    grid-template-columns: 140px 1fr;
+    align-items: center;
+    gap: 10px;
+}
+.field-group label { text-align: right; font-weight: 500; color: #495057; font-size: 14px; }
+.field-group input, .field-group select, .field-group textarea { margin: 0; padding: 8px 12px; font-size: 14px; border: 1px solid #ced4da; border-radius: 5px; }
+.field-group.full-width { grid-column: 1 / -1; }
+
+.form-buttons {
+    margin-top: 25px; display: flex; justify-content: center; gap: 10px;
+    border-top: 1px solid #eee; padding-top: 20px;
+}
+.form-buttons .btn { flex-grow: 0; min-width: 150px; }
+
+/* --- 5. MODAL DE GESTIÓN DE CASOS --- */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000; }
+.modal-content {
+    background: white; padding: 25px 35px; border-radius: 12px; text-align: left;
+    width: 90%; max-width: 550px; box-shadow: 0 5px 20px rgba(0,0,0,0.25);
+}
+.modal-content h2 { text-align: center; margin-bottom: 25px; }
+.modal-content p.section-title { text-align: center; font-weight: 600; margin-top: 25px; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+.modal-content label { font-size: 14px; margin-bottom: 5px; }
+.modal-content input, .modal-content select { margin-bottom: 15px; width: 100%; padding: 10px 12px; border: 1px solid #ccc; border-radius: 6px; }
+
+/* ARREGLO: Los campos de Crear Caso ahora van uno debajo del otro */
+.modal-field-group {
+    display: block; /* En lugar de grid, para que se apilen verticalmente */
+}
+.modal-action-group { display: flex; gap: 10px; align-items: center; }
+.modal-action-group select { flex-grow: 1; margin-bottom: 0; }
+.modal-action-group .btn { margin: 0; flex-shrink: 0; width: auto; }
+.modal-content > .btn-secondary { margin-top: 25px; width: 100%; }
+
+/* --- 10. ESTILOS PARA EL VISOR DE EVIDENCIA --- */
+.viewer-container h3 {
+    font-size: 1.2em;
+    color: #333;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 10px;
+    margin-bottom: 20px;
+}
+.files-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+.files-table th, .files-table td {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    text-align: left;
+    vertical-align: middle;
+}
+.files-table thead th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+}
+.files-table tbody tr:hover {
+    background-color: #fcfdff;
+}
+.files-table .file-icon {
+    font-size: 1.5em;
+    width: 40px;
+    text-align: center;
+}
+.files-table .hash-cell {
+    font-family: monospace;
+    font-size: 0.85em;
+    word-break: break-all; /* Esto asegura que el hash largo no rompa el layout */
+    max-width: 200px; /* Limita el ancho para dar espacio a otras columnas */
+}
+.files-table .actions-cell {
+    width: 80px;
+    text-align: center;
+}
+.files-table .actions-cell .btn-danger {
+    padding: 5px 10px;
+    min-width: auto;
+}
+/* --- AÑADIR ESTO AL FINAL DE static/style.css --- */
+
+/* =======================================================================
+   11. LAYOUT COMPACTO PARA SECCIÓN DE INTERVENCIÓN (No afecta a otros)
+   ======================================================================= */
+.intervention-layout {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr); /* 6 columnas flexibles */
+    gap: 15px 20px;
+    align-items: end; /* Alinea los elementos en la parte inferior de su celda */
+}
+
+/* Redefinimos cómo se ve un field-group SOLO dentro de este layout */
+.intervention-layout .field-group {
+    display: flex; /* Elementos en línea */
+    flex-direction: row; /* Etiqueta al lado del campo */
+    align-items: center;
+    gap: 10px;
+}
+
+.intervention-layout .field-group label {
+    flex-shrink: 0; /* La etiqueta no se encoge */
+    text-align: left; /* Alineación normal */
+    margin: 0;
+}
+
+.intervention-layout .field-group input,
+.intervention-layout .field-group select,
+.intervention-layout .field-group > div {
+    flex-grow: 1; /* El campo ocupa el espacio restante */
+}
+
+/* Distribuimos los elementos en las 6 columnas */
+.intervention-layout .fecha-group { grid-column: span 2; }
+.intervention-layout .hora-group { grid-column: span 1; }
+.intervention-layout .perito-group { grid-column: span 3; }
+.intervention-layout .expediente-group-wrapper { grid-column: span 3; }
+.intervention-layout .fiscalia-group { grid-column: span 3; }
+
+/* =======================================================================
+   12. ARREGLO FINAL PARA EL CAMPO "Nº DE EXPEDIENTE"
+   ======================================================================= */
+
+/* Le decimos al contenedor principal de los campos del expediente que use Flexbox */
+.expediente-group {
+    display: flex;      /* ¡La magia! Pone los elementos en una fila. */
+    align-items: center;/* Los centra verticalmente. */
+    gap: 5px;           /* Un pequeño espacio entre ellos. */
+    width: 100%;
+}
+
+/* Le decimos al select del prefijo que no se encoja */
+.expediente-group select {
+    width: auto;
+    flex-shrink: 0;
+}
+
+/* El contenedor de número y año también usará Flexbox */
+#expediente_normal {
+    display: flex;
+    gap: 5px;
+    width: 100%;
+}
+
+/* El campo del número debe crecer para ocupar el espacio disponible */
+#expediente_normal input[name="expediente_numero"] {
+    flex-grow: 1;
+}
+
+/* El campo del año tiene un ancho fijo y no se encoge */
+#expediente_normal input[name="expediente_anio"] {
+    width: 60px;
+    flex-shrink: 0;
+}
+
+/* El campo "Nº Completo" (cuando es visible) ocupa todo el espacio */
+#expediente_otro {
+    display: none; /* Oculto por defecto, controlado por tu JS */
+    width: 100%;
+}
+
+/* --- AÑADIR ESTO AL FINAL DE static/style.css --- */
+
+/* =======================================================================
+   13. ARREGLO DEFINITIVO PARA CAMPOS DE TELÉFONO
+   ======================================================================= */
+.device-fields-grid {
+    display: grid;
+    /* 4 columnas: label, input, label, input */
+    grid-template-columns: 140px 1fr 140px 1fr;
+    gap: 15px 10px; /* Espacio vertical y horizontal */
+    align-items: center;
+}
+
+.device-fields-grid label {
+    text-align: right;
+    font-weight: 500;
+    color: #495057;
+    font-size: 14px;
+}
+
+.device-fields-grid input,
+.device-fields-grid select,
+.device-fields-grid textarea {
+    width: 100%;
+    margin: 0;
+    padding: 8px 12px;
+    font-size: 14px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+}
+
+/* Regla para que un elemento ocupe todas las 4 columnas */
+.device-fields-grid .full-span {
+    grid-column: 1 / -1;
+}
+
+.fiscalia-group div {
+    display: flex;
+    flex-direction: column;
+}
+
+/* =======================================================================
+   14. PÁGINA DE BÚSQUEDA - ESTILOS COMPLETOS
+   ======================================================================= */
+
+/* Estilos específicos para la página de búsqueda */
+body.search-page {
+    background-color: #f8f9fa;
+    padding: 20px;
+}
+
+.search-page .container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.search-page .header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.search-page .header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+    font-weight: 700;
+}
+
+.search-page .header p {
+    margin: 0;
+    font-size: 1.1em;
+    opacity: 0.9;
+}
+
+/* Sección de búsqueda */
+.search-section {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    margin-bottom: 30px;
+}
+
+.search-form {
+    display: grid;
+    grid-template-columns: 2fr 1fr auto;
+    gap: 20px;
+    align-items: end;
+}
+
+.search-form .form-group {
+    margin: 0;
+}
+
+.search-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+}
+
+.search-form input,
+.search-form select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+}
+
+.search-form input:focus,
+.search-form select:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+/* Sección de resultados */
+.results-section {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.results-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 25px;
+    background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.results-count {
+    font-size: 1.1em;
+    font-weight: 600;
+    color: #495057;
+}
+
+/* Tarjetas de casos */
+.case-card {
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    margin: 15px;
+    overflow: hidden;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.case-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.case-header {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    padding: 20px;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.case-title {
+    font-size: 1.3em;
+    font-weight: 700;
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+.case-meta {
+    display: flex;
+    gap: 20px;
+    font-size: 0.9em;
+    color: #6c757d;
+}
+
+.case-status {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.8em;
+    text-transform: uppercase;
+}
+
+.status-active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-completed {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+/* Contenido de la tarjeta */
+.case-content {
+    padding: 20px;
+}
+
+.case-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.detail-item {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.detail-label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9em;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.detail-value {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #f8f9fa;
+    border-radius: 6px;
+    font-size: 0.95em;
+    color: #495057;
+    word-break: break-word;
+}
+
+/* Botones de acción */
+.copy-btn, .folder-btn {
+    background: none;
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    padding: 4px;
+    border-radius: 4px;
+    transition: background-color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.copy-btn:hover {
+    background: #e9ecef;
+}
+
+.folder-btn:hover {
+    background: #d1ecf1;
+}
+
+/* Sección de archivos */
+.files-section {
+    margin-top: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+}
+
+.files-title {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 1.1em;
+}
+
+.files-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.file-item {
+    background: white;
+    padding: 15px;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.file-name {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 8px;
+    word-break: break-word;
+}
+
+.file-meta {
+    font-size: 0.85em;
+    color: #6c757d;
+    line-height: 1.4;
+}
+
+/* Estados de carga y sin resultados */
+.loading {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #667eea;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 20px;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.no-results {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+}
+
+.no-results h3 {
+    color: #495057;
+    margin-bottom: 10px;
+}
+
+/* Responsive para búsqueda */
+@media (max-width: 768px) {
+    .search-form {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .search-form select {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    .search-form input[type="text"] {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    .case-details {
+        grid-template-columns: 1fr;
+    }
+    
+    .case-meta {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .files-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .case-card {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .case-card h3 {
+        font-size: 1.2rem;
+    }
+    
+    .files-section {
+        margin-top: 15px;
+    }
+    
+    .file-item {
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+    
+    .copy-btn {
+        padding: 8px 12px;
+        font-size: 14px;
+        min-height: 40px;
+    }
+}
+
+@media (max-width: 480px) {
+    .search-section {
+        padding: 15px;
+    }
+    
+    .search-form {
+        gap: 12px;
+    }
+    
+    .search-form .btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 16px;
+    }
+    
+    .case-card {
+        padding: 12px;
+    }
+    
+    .case-card h3 {
+        font-size: 1.1rem;
+    }
+    
+    .file-item {
+        padding: 8px;
+        font-size: 14px;
+    }
+}
+
+/* =======================================================================
+   15. PÁGINAS DE AUTENTICACIÓN - ESTILOS COMPLETOS
+   ======================================================================= */
+
+/* Estilos para páginas de autenticación */
+body.auth-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    margin: 0;
+    padding: 20px;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    overflow: hidden;
+}
+
+.auth-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 30px 20px;
+}
+
+.auth-header h1 {
+    margin: 0 0 10px 0;
+    font-size: 2em;
+    font-weight: 700;
+}
+
+.auth-header p {
+    margin: 0;
+    opacity: 0.9;
+    font-size: 1.1em;
+}
+
+/* Formulario de autenticación */
+.auth-form {
+    padding: 30px 20px;
+}
+
+.auth-form .form-group {
+    margin-bottom: 20px;
+}
+
+.auth-form label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.95em;
+}
+
+.auth-form input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: all 0.3s ease;
+    box-sizing: border-box;
+}
+
+.auth-form input:focus {
+    outline: none;
+    border-color: #667eea;
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.auth-form small {
+    display: block;
+    margin-top: 5px;
+    font-size: 0.8em;
+    color: #6c757d;
+}
+
+/* Botón de bloque completo */
+.btn-block {
+    width: 100%;
+    margin: 0;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+/* Footer de autenticación */
+.auth-footer {
+    background: #f8f9fa;
+    padding: 20px;
+    text-align: center;
+    border-top: 1px solid #dee2e6;
+}
+
+.auth-footer p {
+    margin: 5px 0;
+    color: #6c757d;
+}
+
+.auth-footer a {
+    color: #667eea;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Mensajes flash */
+.flash-messages {
+    padding: 20px;
+}
+
+.alert {
+    padding: 12px 15px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+.alert-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border: 1px solid #bee5eb;
+}
+
+/* Responsive para autenticación */
+@media (max-width: 480px) {
+    .auth-container {
+        padding: 0 10px;
+    }
+    
+    .auth-card {
+        border-radius: 10px;
+    }
+    
+    .auth-header {
+        padding: 25px 15px;
+    }
+    
+    .auth-form {
+        padding: 25px 15px;
+    }
+}
+
+/* Responsive para menú principal */
+@media (max-width: 768px) {
+    .menu-container {
+        padding: 20px;
+        margin: 10px;
+    }
+    
+    .menu-container h1 {
+        font-size: 1.8rem;
+    }
+    
+    .menu-container .btn {
+        width: 100%;
+        max-width: 280px;
+        margin: 15px auto;
+        padding: 18px;
+        font-size: 16px;
+    }
+    
+    .user-info {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .user-info h2 {
+        font-size: 1.2rem;
+    }
+    
+    .user-role, .user-email {
+        font-size: 0.9rem;
+    }
+    
+    .role-badge {
+        padding: 6px 10px;
+        font-size: 0.75rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .menu-container {
+        padding: 15px;
+        margin: 5px;
+    }
+    
+    .menu-container h1 {
+        font-size: 1.5rem;
+    }
+    
+    .menu-container .btn {
+        padding: 16px;
+        font-size: 15px;
+    }
+    
+    .user-info {
+        padding: 12px;
+    }
+    
+    .user-info h2 {
+        font-size: 1.1rem;
+    }
+}
+
+/* =============================
+   ESTILOS PARA PANEL DE ADMINISTRACIÓN
+   ============================= */
+
+body.admin-page {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #2c3e50; /* Color de texto por defecto */
+}
+
+.admin-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-header {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.admin-header h1 {
+    color: #2c3e50;
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 700;
+}
+
+.admin-nav {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+
+.admin-content {
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+.admin-section {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    color: #2c3e50; /* Asegurar color de texto visible */
+}
+    padding: 25px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.admin-section h2 {
+    color: #2c3e50;
+    margin: 0 0 25px 0;
+    font-size: 2rem;
+    font-weight: 600;
+    border-bottom: 3px solid #3498db;
+    padding-bottom: 10px;
+}
+
+.admin-card {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid #e9ecef;
+}
+
+.admin-card h3 {
+    color: #495057;
+    margin: 0 0 20px 0;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.admin-form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 0.9rem;
+}
+
+.form-group input,
+.form-group select {
+    padding: 12px;
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus,
+.form-group select:focus {
+    outline: none;
+    border-color: #3498db;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+}
+
+.form-actions {
+    display: flex;
+    gap: 15px;
+    justify-content: flex-end;
+    margin-top: 20px;
+}
+
+/* Tabla de Usuarios */
+.table-container {
+    overflow-x: auto;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+}
+
+/* Badges de rol y estado */
+.role-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: white !important;
+}
+
+.role-admin {
+    background: #dc3545;
+}
+
+.role-usuario {
+    background: #28a745;
+}
+
+.role-perito {
+    background: #ffc107;
+    color: #000 !important;
+}
+
+.status-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.8em;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.status-badge.active {
+    background: #28a745;
+    color: white;
+}
+
+.status-badge.inactive {
+    background: #6c757d;
+    color: white;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+}
+
+.admin-table th,
+.admin-table td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.admin-table th {
+    background: #f8f9fa;
+    font-weight: 600;
+    color: #495057;
+    position: sticky;
+}
+
+/* Botones pequeños en la tabla */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    border-radius: 6px;
+    margin: 0 2px;
+    min-width: auto;
+    width: auto;
+}
+    top: 0;
+}
+
+.admin-table tr:hover {
+    background: #f8f9fa;
+}
+
+/* Badges */
+.role-badge {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.role-admin {
+    background: #e74c3c;
+    color: white;
+}
+
+.role-perito {
+    background: #f39c12;
+    color: white;
+}
+
+.role-usuario {
+    background: #3498db;
+    color: white;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.status-badge.active {
+    background: #27ae60;
+    color: white;
+}
+
+.status-badge.inactive {
+    background: #95a5a6;
+    color: white;
+}
+
+/* Botones pequeños */
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 0.8rem;
+    margin: 0 2px;
+}
+
+/* Grid de Estadísticas */
+.admin-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.stat-item {
+    text-align: center;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e9ecef;
+}
+
+.stat-number {
+    display: block;
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #3498db;
+    margin-bottom: 8px;
+}
+
+.stat-label {
+    color: #6c757d;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.action-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.action-buttons .btn {
+    width: 100%;
+    justify-content: center;
+    color: white !important;
+    font-weight: 600;
+}
+
+/* Logs */
+.logs-container {
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e9ecef;
+    overflow: hidden;
+}
+
+.logs-content {
+    max-height: 300px;
+    overflow-y: auto;
+    padding: 15px;
+}
+
+.log-entry {
+    display: flex;
+    gap: 15px;
+    padding: 8px 0;
+    border-bottom: 1px solid #f1f3f4;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+}
+
+.log-timestamp {
+    color: #6c757d;
+    min-width: 150px;
+}
+
+.log-level {
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    min-width: 60px;
+    text-align: center;
+}
+
+.log-level.INFO {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.log-level.WARNING {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.log-level.ERROR {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.log-message {
+    color: #495057;
+    flex: 1;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+.modal-content {
+    background-color: white;
+    margin: 5% auto;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 600px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    position: relative;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+    position: absolute;
+    right: 20px;
+    top: 15px;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+}
+
+/* Alertas del Admin */
+.admin-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1001;
+    max-width: 400px;
+    animation: slideInRight 0.3s ease;
+}
+
+@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Estilos específicos para botones del panel de administración */
+.admin-page .btn {
+    color: white !important;
+    font-weight: 600;
+    text-decoration: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.admin-page .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Responsive para panel de administración */
+@media (max-width: 768px) {
+    .admin-header {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-cards-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .admin-table {
+        font-size: 0.9rem;
+    }
+    
+    .admin-table th,
+    .admin-table td {
+        padding: 8px;
+    }
+}
+
+/* Responsive para gestión de firmas */
+@media (max-width: 768px) {
+    .signatures-container {
+        padding: 15px;
+    }
+    
+    .signatures-container h1 {
+        font-size: 1.8rem;
+        text-align: center;
+    }
+    
+    .signature-section {
+        margin-bottom: 25px;
+        padding: 15px;
+    }
+    
+    .signature-section h2 {
+        font-size: 1.4rem;
+    }
+    
+    .signature-form {
+        gap: 15px;
+    }
+    
+    .signature-form input,
+    .signature-form select {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    .signature-form .btn {
+        width: 100%;
+        min-height: 48px;
+        font-size: 16px;
+    }
+    
+    .signatures-list {
+        gap: 15px;
+    }
+    
+    .signature-item {
+        padding: 15px;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .signature-item .btn {
+        width: 100%;
+        min-height: 40px;
+    }
+    
+    .signature-pad-container {
+        width: 100%;
+        max-width: 400px;
+        margin: 0 auto;
+    }
+    
+    .signature-pad {
+        width: 100%;
+        height: 200px;
+    }
+}
+
+@media (max-width: 480px) {
+    .signatures-container {
+        padding: 10px;
+    }
+    
+    .signatures-container h1 {
+        font-size: 1.5rem;
+    }
+    
+    .signature-section {
+        padding: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .signature-section h2 {
+        font-size: 1.2rem;
+    }
+    
+    .signature-form {
+        gap: 12px;
+    }
+    
+    .signature-item {
+        padding: 12px;
+    }
+    
+    .signature-pad {
+        height: 180px;
+    }
+}
+
+/* =============================
+   ESTILOS RESPONSIVE COMPLETOS
+   ============================= */
+
+/* Responsive para formularios y desplegables */
+@media (max-width: 1200px) {
+    .form-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+    
+    .intervention-layout {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+    }
+    
+    .intervention-layout .fecha-group { grid-column: span 2; }
+    .intervention-layout .hora-group { grid-column: span 2; }
+    .intervention-layout .perito-group { grid-column: span 4; }
+    .intervention-layout .expediente-group-wrapper { grid-column: span 4; }
+    .intervention-layout .fiscalia-group { grid-column: span 4; }
+}
+
+/* Layout adaptativo para diferentes dispositivos */
+@media (max-width: 1024px) {
+    /* Tablets */
+    .form-container {
+        grid-template-columns: 2fr 1fr !important;
+        gap: 20px !important;
+    }
+    
+    .viewer-container {
+        max-width: 300px !important;
+        font-size: 0.9rem;
+    }
+    
+    .viewer-container h3 {
+        font-size: 1.1rem;
+    }
+    
+    .files-table {
+        font-size: 0.8rem;
+    }
+    
+    .files-table th,
+    .files-table td {
+        padding: 6px;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Móviles */
+    .main-container {
+        flex-direction: column;
+    }
+    
+    .form-container {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+    }
+    .form-container {
+        grid-template-columns: 1fr !important;
+        grid-template-rows: auto auto !important;
+        gap: 20px !important;
+    }
+    
+    .viewer-container {
+        display: none !important;
+        max-width: 100% !important;
+        grid-column: 1 / -1 !important;
+        margin-top: 20px;
+    }
+    
+    .viewer-container.show-mobile {
+        display: block !important;
+    }
+    
+    /* Botón de toggle para visor en móviles */
+    .viewer-toggle {
+        background: #17a2b8 !important;
+        color: white !important;
+        border: none !important;
+        padding: 15px !important;
+        border-radius: 8px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3) !important;
+    }
+    
+    .viewer-toggle:hover {
+        background: #138496 !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 6px 20px rgba(23, 162, 184, 0.4) !important;
+    }
+    
+    /* Optimizar formulario para móviles */
+    .form-section {
+        padding: 15px !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .form-section legend {
+        font-size: 1.1rem !important;
+        padding: 0 8px !important;
+    }
+    
+    /* Mejorar espaciado en móviles */
+    .field-group {
+        margin-bottom: 15px !important;
+    }
+    
+    .field-group label {
+        font-size: 14px !important;
+        margin-bottom: 6px !important;
+    }
+    
+    /* Campos más grandes para touch */
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+        min-height: 48px !important;
+        font-size: 16px !important;
+        padding: 12px !important;
+    }
+    
+    /* Botones optimizados para móviles */
+    .btn {
+        min-height: 50px !important;
+        font-size: 16px !important;
+        font-weight: 600 !important;
+        padding: 15px 20px !important;
+    }
+    
+    /* Modal optimizado para móviles */
+    .modal-content {
+        width: 95% !important;
+        margin: 5% auto !important;
+        padding: 20px !important;
+    }
+    
+    .modal-field-group {
+        margin-bottom: 15px !important;
+    }
+    
+    .modal-action-group {
+        flex-direction: column !important;
+        gap: 10px !important;
+    }
+    
+    .modal-action-group select {
+        width: 100% !important;
+        min-height: 48px !important;
+    }
+}
+
+@media (max-width: 768px) {
+    /* Contenedor principal */
+    .main-container {
+        padding: 10px;
+    }
+    
+    .form-container {
+        padding: 15px;
+        margin: 10px 0;
+    }
+    
+    /* Títulos */
+    h1 {
+        font-size: 1.5rem;
+        text-align: center;
+    }
+    
+    /* Layout de formularios */
+    .form-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    /* Layout de intervención */
+    .intervention-layout {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .intervention-layout .field-group {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 8px;
+    }
+    
+    .intervention-layout .field-group label {
+        text-align: left;
+        margin-bottom: 5px;
+    }
+    
+    .intervention-layout .fecha-group,
+    .intervention-layout .hora-group,
+    .intervention-layout .perito-group,
+    .intervention-layout .expediente-group-wrapper,
+    .intervention-layout .fiscalia-group {
+        grid-column: span 1;
+    }
+    
+    /* Campos de formulario */
+    .field-group {
+        grid-template-columns: 1fr;
+        gap: 8px;
+    }
+    
+    .field-group label {
+        text-align: left;
+        margin-bottom: 5px;
+    }
+    
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+        width: 100%;
+        box-sizing: border-box;
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    /* Desplegables específicos */
+    .field-group select {
+        min-height: 44px; /* Tamaño mínimo para touch */
+        background-color: white;
+        border: 2px solid #ced4da;
+        border-radius: 8px;
+        padding: 10px 12px;
+        font-size: 16px;
+        appearance: none;
+        background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6,9 12,15 18,9'%3e%3c/polyline%3e%3c/svg%3e");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+        background-size: 16px;
+        padding-right: 40px;
+    }
+    
+    .field-group select:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+    
+    /* Campo de expediente */
+    .expediente-group {
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+    }
+    
+    .expediente-group select,
+    .expediente-group input {
+        width: 100%;
+        min-height: 44px;
+    }
+    
+    #expediente_normal {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    #expediente_normal input[name="expediente_numero"],
+    #expediente_normal input[name="expediente_anio"] {
+        width: 100%;
+        min-height: 44px;
+    }
+    
+    /* Modal responsive */
+    .modal-content {
+        width: 95%;
+        margin: 10% auto;
+        padding: 20px;
+    }
+    
+    .modal-field-group {
+        margin-bottom: 20px;
+    }
+    
+    .modal-action-group {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-action-group select {
+        width: 100%;
+        min-height: 44px;
+    }
+    
+    /* Botones */
+    .form-buttons {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .form-buttons .btn {
+        width: 100%;
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    /* Campos de dispositivo */
+    #campos_telefono .form-grid,
+    #campos_usb .form-grid,
+    #campos_optico .form-grid,
+    #campos_nube .form-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .form-container {
+        padding: 10px;
+        margin: 5px 0;
+    }
+    
+    .form-section {
+        padding: 15px;
+        margin-bottom: 20px;
+    }
+    
+    .form-section legend {
+        font-size: 1.1rem;
+        padding: 0 10px;
+    }
+    
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+        padding: 12px;
+        font-size: 16px;
+    }
+    
+    /* Mejorar legibilidad en móviles */
+    .field-group label {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+    
+    /* Espaciado optimizado para móviles */
+    .field-group {
+        margin-bottom: 20px;
+    }
+    
+    /* Botones más grandes para touch */
+    .btn {
+        min-height: 48px;
+        font-size: 16px;
+        font-weight: 600;
+    }
+    
+    /* Visor optimizado para móviles pequeños */
+    .viewer-container {
+        padding: 15px !important;
+    }
+    
+    .viewer-container h3 {
+        font-size: 1.2rem !important;
+        margin-bottom: 15px !important;
+    }
+    
+    .files-table {
+        font-size: 0.75rem !important;
+    }
+    
+    .files-table th,
+    .files-table td {
+        padding: 8px 6px !important;
+    }
+    
+    .file-icon {
+        font-size: 1.2em !important;
+    }
+    
+    .hash-cell {
+        max-width: 150px !important;
+        font-size: 0.7rem !important;
+    }
+    
+    /* Botón de toggle más prominente en móviles pequeños */
+    .viewer-toggle {
+        padding: 18px !important;
+        font-size: 18px !important;
+        margin-bottom: 25px !important;
+    }
+}
+
+/* Estilos específicos para desplegables en móviles */
+@media (max-width: 768px) {
+    /* Asegurar que los desplegables sean legibles */
+    select option {
+        padding: 8px;
+        font-size: 16px;
+        min-height: 20px;
+    }
+    
+    /* Mejorar la apariencia de los desplegables */
+    .field-group select {
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .field-group select:hover {
+        border-color: #667eea;
+    }
+    
+    /* Desplegables con scroll interno */
+    .field-group select[size] {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    
+    /* Campos de fecha y hora */
+    input[type="date"],
+    input[type="time"] {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    /* Campos de texto */
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"] {
+        min-height: 44px;
+        font-size: 16px;
+    }
+    
+    /* Áreas de texto */
+    textarea {
+        min-height: 80px;
+        font-size: 16px;
+        resize: vertical;
+    }
+}
+
+/* --- GESTIÓN DE CASOS EN ADMIN --- */
+.action-buttons-inline {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.action-buttons-inline .btn {
+    margin: 0;
+    padding: 4px 8px;
+    font-size: 12px;
+}
+
+/* --- SISTEMA DE LOGS MEJORADO --- */
+.logs-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border: 1px solid #dee2e6;
+}
+
+.logs-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #dee2e6;
+}
+
+.logs-actions .btn {
+    margin: 0;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.filter-group label {
+    font-weight: 600;
+    color: #495057;
+    font-size: 12px;
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 6px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 14px;
+}
+
+.logs-stats {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: #e9ecef;
+    border-radius: 8px;
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.stat-label {
+    font-size: 12px;
+    color: #6c757d;
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #495057;
+}
+
+.stat-value.error {
+    color: #dc3545;
+}
+
+.stat-value.warning {
+    color: #ffc107;
+}
+
+.stat-value.success {
+    color: #28a745;
+}
+
+.stat-value.info {
+    color: #17a2b8;
+}
+
+.logs-content {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    background: white;
+}
+
+.log-entry {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f1f3f4;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.log-entry:hover {
+    background-color: #f8f9fa;
+}
+
+.log-entry:last-child {
+    border-bottom: none;
+}
+
+.log-entry.error {
+    border-left: 4px solid #dc3545;
+    background-color: #fff5f5;
+}
+
+.log-entry.warning {
+    border-left: 4px solid #ffc107;
+    background-color: #fffbf0;
+}
+
+.log-entry.success {
+    border-left: 4px solid #28a745;
+    background-color: #f0fff4;
+}
+
+.log-entry.info {
+    border-left: 4px solid #17a2b8;
+    background-color: #f0f8ff;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.log-timestamp {
+    font-size: 12px;
+    color: #6c757d;
+    font-family: monospace;
+}
+
+.log-level {
+    font-weight: bold;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-size: 11px;
+}
+
+.log-level.error {
+    background-color: #dc3545;
+    color: white;
+}
+
+.log-level.warning {
+    background-color: #ffc107;
+    color: #212529;
+}
+
+.log-level.success {
+    background-color: #28a745;
+    color: white;
+}
+
+.log-level.info {
+    background-color: #17a2b8;
+    color: white;
+}
+
+.log-user {
+    font-size: 11px;
+    color: #495057;
+    background-color: #d1ecf1;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: 600;
+}
+
+.log-source {
+    font-size: 11px;
+    color: #6c757d;
+    background-color: #e9ecef;
+    padding: 2px 6px;
+    border-radius: 10px;
+}
+
+.log-message {
+    font-size: 14px;
+    color: #495057;
+    line-height: 1.4;
+}
+
+.log-details {
+    margin-top: 10px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.log-detail-item {
+    margin-bottom: 5px;
+    font-size: 13px;
+}
+
+.log-detail-item strong {
+    color: #495057;
+}
+
+.no-logs {
+    text-align: center;
+    padding: 40px;
+    color: #6c757d;
+    font-style: italic;
+}
+
+.case-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.detail-section {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.detail-section h4 {
+    color: #007bff;
+    margin-bottom: 10px;
+    font-size: 16px;
+}
+
+.detail-section p {
+    margin: 5px 0;
+    font-size: 14px;
+}
+
+.filters-section {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 20px 0;
+}
+
+.filters-section h4 {
+    color: #495057;
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.status-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.completed {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
+.status-badge.archived {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.status-badge.unknown {
+    background: #e2e3e5;
+    color: #383d41;
+}
+
+.btn-sm {
+    padding: 6px 12px;
+    font-size: 12px;
+    margin: 2px;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.alert {
+    padding: 12px 16px;
+    border-radius: 6px;
+    margin: 10px 0;
+    border: 1px solid transparent;
+}
+
+.alert-danger {
+    background: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+}
+
+.alert-success {
+    background: #d4edda;
+    color: #155724;
+    border-color: #c3e6cb;
+}
+
+.alert-info {
+    background: #d1ecf1;
+    color: #0c5460;
+    border-color: #bee5eb;
+}
+
+.alert-warning {
+    background: #fff3cd;
+    color: #856404;
+    border-color: #ffeaa7;
+}
+
+/* Responsive para gestión de casos */
+@media (max-width: 768px) {
+    .case-detail-grid { 
+        grid-template-columns: 1fr; 
+    }
+    .filters-section .form-row { 
+        flex-direction: column; 
+    }
+}
