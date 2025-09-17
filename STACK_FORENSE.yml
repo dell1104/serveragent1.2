@@ -12,6 +12,7 @@ services:
       - /mnt/Respaldo/sistema-forense/forensic_data:/app/forensic_data
       - /mnt/Respaldo/sistema-forense/logs:/app/logs
       - /mnt/Respaldo/sistema-forense/temp:/app/temp
+      - /mnt/Respaldo/sistema-forense:/app/host:ro
     environment:
       - AGENT_ID=forensic_agent_001
       - AGENT_NAME=Agente Forense Principal
@@ -20,14 +21,21 @@ services:
       - PYTHONUNBUFFERED=1
     command: >
       sh -c "
+        echo '=== CREANDO ESTRUCTURA DE DIRECTORIOS ===' &&
+        mkdir -p /app/forensic_data /app/temp /app/logs &&
+        echo '=== COPIANDO ARCHIVOS DEL AGENTE FORENSE ===' &&
+        if [ -f /app/host/forensic_agent.py ]; then cp /app/host/forensic_agent.py /app/; fi &&
+        if [ -d /app/host/utils_package ]; then cp -r /app/host/utils_package /app/; fi &&
         echo '=== INSTALANDO DEPENDENCIAS FORENSES ===' &&
         apt-get update && apt-get install -y build-essential gcc g++ make cmake pkg-config libffi-dev libssl-dev libpq-dev libewf-dev ewf-tools afflib-tools libmagic1 libfuse-dev libsqlite3-dev libxml2-dev libxslt1-dev zlib1g-dev libbz2-dev liblzma-dev libncurses5-dev libreadline-dev libgdbm-dev libnss3-dev wget curl git &&
         echo '=== INSTALANDO PYTHON FORENSE ===' &&
         pip install --no-cache-dir --upgrade pip setuptools wheel &&
-        pip install --no-cache-dir Flask==2.3.3 gunicorn==21.2.0 requests psycopg2-binary redis flask-cors flask-login flask-limiter flask-sqlalchemy bcrypt python-magic &&
+        pip install --no-cache-dir Flask==2.3.3 gunicorn==21.2.0 requests psycopg2-binary redis flask-cors flask-login flask-limiter flask-sqlalchemy bcrypt python-magic psutil &&
         pip install --no-cache-dir pyaff4 pyewf dfvfs dfimagetools libewf-python aff4 pytsk3 pycryptodome cryptography &&
         echo '=== VERIFICANDO HERRAMIENTAS ===' &&
         ewfacquire --version || echo 'ewfacquire disponible' &&
+        echo '=== VERIFICANDO ARCHIVO FORENSIC_AGENT ===' &&
+        ls -la /app/forensic_agent.py &&
         echo '=== INICIANDO AGENTE ===' &&
         exec python forensic_agent.py
       "
@@ -39,3 +47,4 @@ services:
 networks:
   forense_network:
     driver: bridge
+    enable_ipv6: false

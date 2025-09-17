@@ -1,0 +1,33 @@
+{
+  "generated_at": "2025-09-17T12:01:30.426180",
+  "total_installers": 3,
+  "installers": [
+    {
+      "filename": "Instalar_Agente_Forense.bat",
+      "os": "windows",
+      "arch": "x64",
+      "size": "6016 bytes",
+      "version": "1.0.0",
+      "description": "Instalador Windows .bat (funcional)",
+      "available": true
+    },
+    {
+      "filename": "Agente_Forense_Windows.zip",
+      "os": "windows",
+      "arch": "x64",
+      "size": "1910 bytes",
+      "version": "1.0.0",
+      "description": "Instalador Windows ZIP (recomendado)",
+      "available": true
+    },
+    {
+      "filename": "forensic_agent_linux_x64.sh",
+      "os": "linux",
+      "arch": "x64",
+      "size": "871 bytes",
+      "version": "1.0.0",
+      "description": "Instalador Linux 64-bit",
+      "available": true
+    }
+  ]
+}

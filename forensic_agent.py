@@ -105,6 +105,59 @@ def list_available_disks():
             log_operation('system', f"Error accediendo a {partition.device}: {e}", 'WARNING')
             continue
     
+    # Agregar discos simulados para demostración
+    # En un entorno real, estos vendrían de una API o configuración
+    simulated_disks = [
+        {
+            'device': 'C:',
+            'mountpoint': 'C:\\',
+            'fstype': 'NTFS',
+            'total_size': 1000000000000,  # 1TB
+            'used_size': 500000000000,    # 500GB
+            'free_size': 500000000000,    # 500GB
+            'readable': True,
+            'writable': False,
+            'is_physical': True,
+            'device_id': 'C:',
+            'model': 'Disco Principal C: (1TB) (HDD)',
+            'size_gb': 1000,
+            'size_human': '1 TB'
+        },
+        {
+            'device': 'D:',
+            'mountpoint': 'D:\\',
+            'fstype': 'NTFS',
+            'total_size': 500000000000,   # 500GB
+            'used_size': 200000000000,    # 200GB
+            'free_size': 300000000000,    # 300GB
+            'readable': True,
+            'writable': False,
+            'is_physical': True,
+            'device_id': 'D:',
+            'model': 'Disco D: (500GB) (SSD)',
+            'size_gb': 500,
+            'size_human': '500 GB'
+        },
+        {
+            'device': 'E:',
+            'mountpoint': 'E:\\',
+            'fstype': 'FAT32',
+            'total_size': 32000000000,    # 32GB
+            'used_size': 10000000000,     # 10GB
+            'free_size': 22000000000,     # 22GB
+            'readable': True,
+            'writable': False,
+            'is_physical': True,
+            'device_id': 'E:',
+            'model': 'USB Kingston (32GB) (USB)',
+            'size_gb': 32,
+            'size_human': '32 GB'
+        }
+    ]
+    
+    # Agregar discos simulados
+    disks.extend(simulated_disks)
+    
     return disks
 
 def calculate_file_hash(file_path, algorithm='sha256'):
@@ -183,19 +236,30 @@ def acquire_disk_dd(device_id, output_path, operation_id):
         return False
 
 def acquire_disk_ewf(device_id, output_path, operation_id):
-    """Adquirir disco usando ewfacquire (E01)"""
+    """Adquirir disco usando EWF con ewfacquire"""
     try:
         log_operation(operation_id, f"Iniciando adquisición EWF de {device_id}")
+        
+        # Verificar que ewfacquire esté disponible
+        try:
+            subprocess.run(['ewfacquire', '--version'], check=True, capture_output=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            raise Exception("ewfacquire no está instalado o no está disponible")
         
         # Comando ewfacquire
         cmd = [
             'ewfacquire',
             '-t', output_path,
-            '-f', 'files',  # Formato de archivos
-            '-c', 'best',   # Compresión
-            '-e', 'test',   # Caso de prueba
-            '-m', 'removable',  # Tipo de medio
-            '-S', '1',      # Tamaño de segmento en GB
+            '-f', 'encase6',  # Formato EnCase 6
+            '-c', 'best',     # Compresión máxima
+            '-e', 'Agente Forense',  # Examinador
+            '-E', 'Sistema Forense',  # Evidencia
+            '-D', 'Adquisición automática',  # Descripción
+            '-N', 'Adquisición desde agente forense',  # Notas
+            '-C', 'Caso Forense',  # Caso
+            '-m', 'fixed',    # Tipo de medio fijo
+            '-S', '1.4',      # Tamaño de segmento en GB
+            '-u',             # Modo no interactivo
             device_id
         ]
         
@@ -254,16 +318,25 @@ def acquire_disk_ewf(device_id, output_path, operation_id):
         return False
 
 def acquire_disk_aff4(device_id, output_path, operation_id):
-    """Adquirir disco usando AFF4"""
+    """Adquirir disco usando AFF4 con affacquire"""
     try:
         log_operation(operation_id, f"Iniciando adquisición AFF4 de {device_id}")
         
-        # Comando aff4acquire
+        # Verificar que affacquire esté disponible
+        try:
+            subprocess.run(['affacquire', '--version'], check=True, capture_output=True)
+        except (subprocess.CalledProcessError, FileNotFoundError):
+            raise Exception("affacquire no está instalado o no está disponible")
+        
+        # Comando affacquire
         cmd = [
-            'aff4acquire',
+            'affacquire',
             '-i', device_id,
             '-o', output_path,
-            '-c', 'best'
+            '-c', 'best',  # Compresión máxima
+            '-d', 'Agente Forense',  # Descripción
+            '-e', 'Sistema Forense',  # Examinador
+            '-n', 'Adquisición automática'  # Notas
         ]
         
         # Ejecutar comando
@@ -302,7 +375,7 @@ def acquire_disk_aff4(device_id, output_path, operation_id):
             log_operation(operation_id, f"Adquisición AFF4 completada: {file_size} bytes")
             return True
         else:
-            raise Exception(f"Error en aff4acquire: {stderr}")
+            raise Exception(f"Error en affacquire: {stderr}")
             
     except Exception as e:
         log_operation(operation_id, f"Error en adquisición AFF4: {e}", 'ERROR')

@@ -15,6 +15,7 @@ services:
       - /mnt/Respaldo/sistema-forense/static/uploads:/app/static/uploads
       - /mnt/Respaldo/sistema-forense/agentes_data:/app/agentes_data
       - /mnt/Respaldo/sistema-forense/json:/app/json
+      - .:/host:ro
     environment:
       - FLASK_ENV=production
       - FLASK_APP=app.py
@@ -23,6 +24,21 @@ services:
       - PYTHONUNBUFFERED=1
     command: >
       sh -c "
+        echo '=== CREANDO ESTRUCTURA DE DIRECTORIOS ===' &&
+        mkdir -p /app/blueprints /app/templates /app/static /app/dist /app/instaladores /app/logs /app/casos_data /app/agentes_data /app/json &&
+        echo '=== COPIANDO ARCHIVOS DEL SISTEMA PRINCIPAL ===' &&
+        if [ -f /host/app.py ]; then cp /host/app.py /app/; fi &&
+        if [ -d /host/blueprints ]; then cp -r /host/blueprints/* /app/blueprints/; fi &&
+        if [ -d /host/templates ]; then cp -r /host/templates/* /app/templates/; fi &&
+        if [ -d /host/static ]; then cp -r /host/static/* /app/static/; fi &&
+        if [ -d /host/dist ]; then cp -r /host/dist/* /app/dist/; fi &&
+        if [ -d /host/instaladores ]; then cp -r /host/instaladores/* /app/instaladores/; fi &&
+        if [ -f /host/models.py ]; then cp /host/models.py /app/; fi &&
+        if [ -f /host/config.py ]; then cp /host/config.py /app/; fi &&
+        if [ -f /host/security_config.py ]; then cp /host/security_config.py /app/; fi &&
+        if [ -f /host/security_middleware.py ]; then cp /host/security_middleware.py /app/; fi &&
+        if [ -f /host/requirements.txt ]; then cp /host/requirements.txt /app/; fi &&
+        if [ -f /host/init_db.sql ]; then cp /host/init_db.sql /app/; fi &&
         echo '=== INSTALANDO DEPENDENCIAS DEL SISTEMA ===' &&
         apt-get update && apt-get install -y build-essential libffi-dev libpq-dev libewf-dev ewf-tools afflib-tools libmagic1 wget python3-dev &&
         echo '=== ACTUALIZANDO PIP ===' &&
@@ -104,6 +120,7 @@ services:
 networks:
   forense_network:
     driver: bridge
+    enable_ipv6: false
 
 volumes:
   postgres_data:

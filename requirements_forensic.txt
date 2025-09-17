@@ -12,12 +12,10 @@ bcrypt==4.0.1
 python-magic==0.4.27
 
 # Herramientas forenses específicas
-pyaff4==0.30.0
-pyewf==20210419
+# pyewf removido - usando ewfacquire nativo
+# pyaff4 removido - usando affacquire nativo
 dfvfs==20231231
 dfimagetools==20231231
-libewf-python==20140608
-aff4==0.30.0
 pytsk3==20210419
 pycryptodome==3.19.0
 cryptography==41.0.7
