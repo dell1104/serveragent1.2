@@ -1,0 +1,17 @@
+/* Archivo de prueba CSS */
+body {
+    background-color: #ff0000 !important;
+    color: #ffffff !important;
+}
+
+.test-message {
+    background-color: #00ff00;
+    color: #000000;
+    padding: 20px;
+    font-size: 24px;
+    font-weight: bold;
+    text-align: center;
+    border: 5px solid #0000ff;
+}
+
+

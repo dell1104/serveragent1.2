@@ -1,0 +1,327 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Gestión de Casos{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-plus-circle me-2"></i>Crear Nuevo Caso
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <form id="case-form" enctype="multipart/form-data">
+                        <!-- Información Básica -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h5 class="text-primary mb-3">
+                                    <i class="fas fa-info-circle me-2"></i>Información Básica
+                                </h5>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="numero_informe_tecnico" class="form-label">Número de Informe Técnico</label>
+                                <input type="text" class="form-control" id="numero_informe_tecnico" name="numero_informe_tecnico" placeholder="Se genera automáticamente si se deja vacío">
+                                <small class="form-text text-muted">Dejar vacío para generar automáticamente</small>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="expediente_prefijo" class="form-label">Número de Expediente *</label>
+                                <div class="expediente-group">
+                                    <select id="expediente_prefijo" name="expediente_prefijo" class="form-select" onchange="toggleExpedienteOtro()">
+                                        <option value="P-">P-</option>
+                                        <option value="T-">T-</option>
+                                        <option value="Otro">Otro</option>
+                                    </select>
+                                    <div id="expediente_normal" class="mt-2">
+                                        <input type="text" id="expediente_numero" name="expediente_numero" class="form-control" placeholder="12345" required>
+                                        <input type="text" id="expediente_anio" name="expediente_anio" class="form-control" required>
+                                    </div>
+                                    <input type="text" id="expediente_otro" name="expediente_otro" class="form-control mt-2" placeholder="Nº Completo" style="display:none;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="origen_solicitud" class="form-label">Origen de Solicitud *</label>
+                                <div>
+                                    <select class="form-select" id="origen_solicitud" name="origen_solicitud" onchange="mostrarOrigenOtro()" required>
+                                    <option value="">Seleccionar...</option>
+                                        <option value="Oficial Fiscal San Carlos Tunuyán">Oficial Fiscal San Carlos Tunuyán</option>
+                                        <option value="Oficina Fiscal Tupungato">Oficina Fiscal Tupungato</option>
+                                        <option value="Unidad Fiscal Valle de Uco">Unidad Fiscal Valle de Uco</option>
+                                        <option value="Fiscal Penal de Menores y Tránsito Valle de Uco">Fiscal Penal de Menores y Tránsito Valle de Uco</option>
+                                        <option value="Juzgado Penal Colegiado de Tunuyán">Juzgado Penal Colegiado de Tunuyán</option>
+                                        <option value="Unidad Investigativa Tunuyán">Unidad Investigativa Tunuyán</option>
+                                        <option value="Unidad Investigativa San Carlos">Unidad Investigativa San Carlos</option>
+                                        <option value="Unidad Investigativa Tupungato">Unidad Investigativa Tupungato</option>
+                                        <option value="Otros">Otros</option>
+                                </select>
+                                    <input type="text" id="origen_otro" name="origen_otro" class="form-control mt-2" placeholder="Especificar..." style="display:none;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="tipo_requerimiento" class="form-label">Tipo de Requerimiento *</label>
+                                <div>
+                                    <select class="form-select" id="tipo_requerimiento" name="tipo_requerimiento" onchange="mostrarTipoOtro()" required>
+                                    <option value="">Seleccionar...</option>
+                                    <option value="Análisis de Dispositivos">Análisis de Dispositivos</option>
+                                    <option value="Análisis de Comunicaciones">Análisis de Comunicaciones</option>
+                                    <option value="Análisis de Redes">Análisis de Redes</option>
+                                        <option value="Análisis de Metadatos">Análisis de Metadatos</option>
+                                        <option value="Análisis de Imágenes">Análisis de Imágenes</option>
+                                        <option value="Análisis de Audio">Análisis de Audio</option>
+                                        <option value="Otros">Otros</option>
+                                </select>
+                                    <input type="text" id="tipo_otro" name="tipo_otro" class="form-control mt-2" placeholder="Especificar..." style="display:none;">
+                                </div>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="fecha_intervencion" class="form-label">Fecha de Intervención *</label>
+                                <input type="date" class="form-control" id="fecha_intervencion" name="fecha_intervencion" required>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label for="hora_intervencion" class="form-label">Hora de Intervención *</label>
+                                <input type="time" class="form-control" id="hora_intervencion" name="hora_intervencion" required>
+                            </div>
+                            <div class="col-12 mb-3">
+                                <label for="observaciones" class="form-label">Observaciones</label>
+                                <textarea class="form-control" id="observaciones" name="observaciones" rows="3" placeholder="Observaciones adicionales..."></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Botones -->
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button type="button" class="btn btn-outline-secondary" onclick="limpiarFormulario()">
+                                <i class="fas fa-eraser me-1"></i>Limpiar
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Crear Caso
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resultados -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle me-2"></i>Resultados
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div id="resultados">
+                        <div class="text-muted text-center py-4">
+                        <i class="fas fa-info-circle fa-2x mb-3"></i>
+                        <p>Los resultados de las operaciones aparecerán aquí</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    'use strict';
+    
+    console.log('🚀 Script iniciando...');
+
+    // Función para crear caso
+    async function crearCaso(event) {
+        event.preventDefault();
+        console.log('📝 Formulario enviado, procesando...');
+        
+        const formData = new FormData(event.target);
+        const caseData = Object.fromEntries(formData.entries());
+        console.log('📋 Datos del formulario:', caseData);
+        
+        // Construir expediente completo
+        let expedienteCompleto;
+        if (caseData.expediente_prefijo === 'Otro') {
+            expedienteCompleto = caseData.expediente_otro;
+        } else {
+            expedienteCompleto = `${caseData.expediente_prefijo}${caseData.expediente_numero}${caseData.expediente_anio}`;
+        }
+        console.log('🔢 Expediente construido:', expedienteCompleto);
+        
+        // Construir origen completo
+        let origenCompleto = caseData.origen_solicitud;
+        if (caseData.origen_solicitud === 'Otros' && caseData.origen_otro) {
+            origenCompleto = caseData.origen_otro;
+        }
+        
+        // Construir tipo de requerimiento completo
+        let tipoCompleto = caseData.tipo_requerimiento;
+        if (caseData.tipo_requerimiento === 'Otros' && caseData.tipo_otro) {
+            tipoCompleto = caseData.tipo_otro;
+        }
+        
+        // Preparar datos para envío
+        const datosEnvio = {
+            expediente: expedienteCompleto,
+            origen_solicitud: origenCompleto,
+            fecha_intervencion: caseData.fecha_intervencion,
+            hora_intervencion: caseData.hora_intervencion,
+            tipo_requerimiento: tipoCompleto,
+            observaciones: caseData.observaciones || '',
+            numero_informe_tecnico: caseData.numero_informe_tecnico || ''
+        };
+        
+        console.log('📤 Datos finales para envío:', datosEnvio);
+        
+        try {
+            const response = await fetch('/api/crear_caso_completo', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(datosEnvio)
+            });
+            
+            // Verificar si la respuesta es JSON
+            if (!response.headers.get("content-type")?.includes("application/json")) {
+                const text = await response.text();
+                console.error('El servidor no respondió con JSON. Respuesta:', text);
+                throw new Error(`El servidor no respondió con JSON. Respuesta:\n${text}`);
+            }
+            
+            const result = await response.json();
+            console.log('Respuesta del servidor:', result);
+            
+            if (result.success) {
+                mostrarResultado('✅ Caso creado exitosamente', 'success');
+                event.target.reset();
+                cargarFechaHoraActual();
+            } else {
+                mostrarResultado(`❌ Error: ${result.error}`, 'error');
+            }
+        } catch (error) {
+            console.error('Error en la función fetch:', error);
+            mostrarResultado(`❌ Error de conexión: ${error.message}`, 'error');
+        }
+    }
+
+    // Función para mostrar resultado
+    function mostrarResultado(mensaje, tipo) {
+        const resultados = document.getElementById('resultados');
+        if (resultados) {
+            const alertClass = tipo === 'error' ? 'alert-danger' : 'alert-success';
+            resultados.innerHTML = `<div class="alert ${alertClass}">${mensaje}</div>`;
+        }
+    }
+
+    // Función para cargar fecha y hora actual
+    function cargarFechaHoraActual() {
+        const ahora = new Date();
+        const fechaInput = document.getElementById('fecha_intervencion');
+        const horaInput = document.getElementById('hora_intervencion');
+        const anioInput = document.getElementById('expediente_anio');
+        
+        if (fechaInput) fechaInput.value = ahora.toISOString().split('T')[0];
+        if (horaInput) horaInput.value = ahora.toTimeString().substring(0, 5);
+        if (anioInput) anioInput.value = `/${ahora.getFullYear().toString().slice(-2)}`;
+    }
+
+    // Función para toggle expediente otro
+    function toggleExpedienteOtro() {
+        const esOtro = document.getElementById('expediente_prefijo').value === 'Otro';
+        const normal = document.getElementById('expediente_normal');
+        const otro = document.getElementById('expediente_otro');
+        
+        if (normal) normal.style.display = esOtro ? 'none' : 'block';
+        if (otro) otro.style.display = esOtro ? 'block' : 'none';
+        if (otro) otro.required = esOtro;
+    }
+
+    // Función para mostrar origen otro
+    function mostrarOrigenOtro() {
+        const esOtro = document.getElementById('origen_solicitud').value === 'Otros';
+        const otro = document.getElementById('origen_otro');
+        if (otro) {
+            otro.style.display = esOtro ? 'block' : 'none';
+            otro.required = esOtro;
+        }
+    }
+
+    // Función para mostrar tipo otro
+    function mostrarTipoOtro() {
+        const esOtro = document.getElementById('tipo_requerimiento').value === 'Otros';
+        const otro = document.getElementById('tipo_otro');
+        if (otro) {
+            otro.style.display = esOtro ? 'block' : 'none';
+            otro.required = esOtro;
+        }
+    }
+
+    // Función para limpiar formulario
+    function limpiarFormulario() {
+        const form = document.getElementById('case-form');
+        if (form) {
+            form.reset();
+            cargarFechaHoraActual();
+            mostrarResultado('Formulario limpiado', 'success');
+        }
+    }
+
+    // Hacer funciones globales
+    window.toggleExpedienteOtro = toggleExpedienteOtro;
+    window.mostrarOrigenOtro = mostrarOrigenOtro;
+    window.mostrarTipoOtro = mostrarTipoOtro;
+    window.limpiarFormulario = limpiarFormulario;
+
+    // Inicialización cuando el DOM esté listo
+    function init() {
+        console.log('🚀 Inicializando...');
+        
+        // Verificar que todos los elementos existan
+        const form = document.getElementById('case-form');
+        const resultados = document.getElementById('resultados');
+        const fechaInput = document.getElementById('fecha_intervencion');
+        const horaInput = document.getElementById('hora_intervencion');
+        const anioInput = document.getElementById('expediente_anio');
+        
+        console.log('🔍 Elementos encontrados:');
+        console.log('- Formulario:', form ? '✅' : '❌');
+        console.log('- Resultados:', resultados ? '✅' : '❌');
+        console.log('- Fecha:', fechaInput ? '✅' : '❌');
+        console.log('- Hora:', horaInput ? '✅' : '❌');
+        console.log('- Año:', anioInput ? '✅' : '❌');
+        
+        if (!form) {
+            console.error('❌ Formulario no encontrado, reintentando en 500ms...');
+            setTimeout(init, 500);
+            return;
+        }
+        
+        // Cargar fecha y hora actual
+        cargarFechaHoraActual();
+        
+        // Configurar formulario
+        console.log('📋 Formulario encontrado, configurando...');
+        form.addEventListener('submit', crearCaso);
+        
+        console.log('✅ Configuración completada');
+    }
+
+    // Ejecutar cuando el DOM esté listo con timeout de seguridad
+    function safeInit() {
+        setTimeout(function() {
+            console.log('🚀 Ejecutando inicialización segura...');
+            init();
+        }, 100);
+    }
+    
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', safeInit);
+    } else {
+        safeInit();
+    }
+})();
+</script>
+{% endblock %}

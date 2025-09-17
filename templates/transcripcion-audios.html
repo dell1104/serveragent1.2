@@ -1,0 +1,1471 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transcripción de Audios - Sistema Forense</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_modern.css') }}}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='forms.css') }}}">
+    <style>
+        .transcripcion-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #7f8c8d;
+            margin-bottom: 30px;
+            font-size: 16px;
+        }
+        
+        .section-card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .section-title {
+            color: #2c3e50;
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #34495e;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .btn {
+            background: #3498db;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            background: #2980b9;
+        }
+        
+        .btn-success {
+            background: #27ae60;
+        }
+        
+        .btn-success:hover {
+            background: #229954;
+        }
+        
+        .btn-warning {
+            background: #f39c12;
+        }
+        
+        .btn-warning:hover {
+            background: #e67e22;
+        }
+        
+        .btn-danger {
+            background: #e74c3c;
+        }
+        
+        .btn-danger:hover {
+            background: #c0392b;
+        }
+        
+        .progress-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #ecf0f1;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .results-container {
+            margin-top: 20px;
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        
+        .result-item.success {
+            border-left: 4px solid #27ae60;
+        }
+        
+        .result-item.error {
+            border-left: 4px solid #e74c3c;
+        }
+        
+        .file-info {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .transcripcion-text {
+            background: white;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            padding: 10px;
+            margin-top: 10px;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .hash-info {
+            font-family: monospace;
+            font-size: 12px;
+            color: #7f8c8d;
+            margin-top: 5px;
+        }
+        
+        .chat-container {
+            display: none;
+            margin-top: 20px;
+        }
+        
+        .chat-textarea {
+            width: 100%;
+            height: 300px;
+            padding: 10px;
+            border: 1px solid #bdc3c7;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            resize: vertical;
+        }
+        
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 5px;
+        }
+        
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        .alert-info {
+            color: #0c5460;
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        
+        /* Estilos para verificación */
+        .verificacion-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .audio-player-container, .transcript-editor-container {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .player-controls {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .btn-sm {
+            padding: 5px 10px;
+            font-size: 12px;
+        }
+        
+        .speed-control {
+            margin-left: 10px;
+        }
+        
+        .speed-control select {
+            padding: 5px;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+        
+        .transcript-info {
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 15px;
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .transcript-textarea {
+            width: 100%;
+            height: 300px;
+            padding: 15px;
+            border: 1px solid #bdc3c7;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            resize: vertical;
+            background: white;
+        }
+        
+        .editor-controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .file-input-container {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .expediente-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .expediente-selector select {
+            flex: 1;
+        }
+        
+        .archivos-expediente {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 1px solid #dee2e6;
+        }
+        
+        .archivo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 5px;
+            border: 1px solid #e9ecef;
+        }
+        
+        .archivo-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .archivo-nombre {
+            font-weight: 500;
+            color: #495057;
+        }
+        
+        .archivo-tamaño {
+            font-size: 12px;
+            color: #6c757d;
+        }
+        
+        .archivo-hash {
+            font-size: 11px;
+            color: #6c757d;
+            font-family: monospace;
+        }
+        
+        .archivo-info {
+            color: #28a745;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        
+        .archivos-lista {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        
+        .archivo-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 3px;
+            border: 1px solid #e0e0e0;
+        }
+        
+        .archivo-item.transcripcion-existe {
+            background: #d4edda;
+            border-color: #c3e6cb;
+        }
+        
+        .archivo-item.transcripcion-no-existe {
+            background: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        
+        @media (max-width: 768px) {
+            .verificacion-content {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="transcripcion-container">
+        <h1>🎵 Transcripción de Audios - VERSIÓN ACTUALIZADA</h1>
+        <p class="subtitle">Transcribe archivos de audio individuales o en lote con cálculo automático de hashes SHA256, e intégralos con chats de WhatsApp</p>
+        
+        <!-- Configuración de API -->
+        <div class="section-card">
+            <h2 class="section-title">Configuración de AssemblyAI</h2>
+            <div class="form-group">
+                <label for="assemblyai-key">Clave API de AssemblyAI:</label>
+                <input type="password" id="assemblyai-key" class="form-control" placeholder="Ingrese su clave API de AssemblyAI">
+                <small>Obtenga su clave en <a href="https://www.assemblyai.com/dashboard/signup" target="_blank">AssemblyAI</a></small>
+            </div>
+        </div>
+        
+        <!-- Transcripción de Audios -->
+        <div class="section-card">
+            <h2 class="section-title">Transcripción de Audios</h2>
+            <div class="form-group">
+                <label for="expediente-selector">Seleccionar Expediente:</label>
+                <div class="expediente-selector">
+                    <select id="expediente-selector" class="form-control" onchange="cargarArchivosExpediente()">
+                        <option value="">Seleccionar expediente...</option>
+                    </select>
+                    <button class="btn btn-secondary" onclick="buscarExpediente()">🔍 Buscar</button>
+                </div>
+            </div>
+            
+            <div class="form-group" id="busqueda-manual" style="display: none;">
+                <label for="expediente-manual">Número de Expediente:</label>
+                <input type="text" id="expediente-manual" class="form-control" placeholder="Ej: P-1234-25">
+                <button class="btn btn-primary" onclick="cargarExpedienteManual()">Cargar Expediente</button>
+            </div>
+            
+            <div class="form-group">
+                <label for="audio-files">Seleccionar archivo(s) de audio:</label>
+                <div class="file-input-container">
+                    <input type="file" id="audio-files" class="form-control" accept="audio/*" multiple style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('audio-files').click()">
+                        📁 Examinar Archivos del Expediente
+                    </button>
+                </div>
+                <small>Selecciona archivos de audio del expediente cargado</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="caso-expediente">Expediente del caso (se llena automáticamente):</label>
+                <input type="text" id="caso-expediente" class="form-control" readonly>
+            </div>
+            
+            <div id="archivos-expediente" class="archivos-expediente" style="display: none;">
+                <h4>📁 Archivos del Expediente</h4>
+                <div id="lista-archivos"></div>
+            </div>
+            <button class="btn btn-success" onclick="transcribirAudios()">🎵 Transcribir Audios</button>
+            <button class="btn btn-warning" onclick="descargarTranscripciones()">💾 Descargar Transcripciones</button>
+            <button class="btn btn-danger" onclick="limpiarResultados()">🗑️ Limpiar Resultados</button>
+        </div>
+        
+        <!-- Progreso -->
+        <div class="progress-container" id="progress-container">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress-fill"></div>
+            </div>
+            <p id="progress-text">Procesando...</p>
+        </div>
+        
+        <!-- Resultados -->
+        <div class="results-container" id="results-container">
+            <!-- Los resultados se mostrarán aquí -->
+        </div>
+        
+        <!-- Integración con WhatsApp -->
+        <div class="section-card" id="whatsapp-container" style="display: none;">
+            <h2 class="section-title">📱 Integración con WhatsApp</h2>
+            <div class="form-group">
+                <label for="chat-whatsapp-file">Cargar chat de WhatsApp (.txt):</label>
+                <div class="file-input-container">
+                    <input type="file" id="chat-whatsapp-file" class="form-control" accept=".txt" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('chat-whatsapp-file').click()">
+                        📁 Seleccionar Chat de WhatsApp
+                    </button>
+                    <span id="chat-whatsapp-seleccionado" class="archivo-info"></span>
+                </div>
+            </div>
+            
+            <div id="whatsapp-content" style="display: none;">
+                <div class="form-group">
+                    <label>Archivos de audio encontrados en el chat:</label>
+                    <div id="archivos-whatsapp-lista" class="archivos-lista">
+                        <!-- Los archivos se mostrarán aquí -->
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <button class="btn btn-success" onclick="insertarTranscripcionesWhatsApp()">
+                        📝 Insertar Transcripciones en Chat
+                    </button>
+                    <button class="btn btn-info" onclick="descargarChatModificado()">
+                        💾 Descargar Chat Modificado
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Verificación de Transcripciones -->
+        <div class="section-card" id="verificacion-container" style="display: none;">
+            <h2 class="section-title">Verificación de Transcripciones</h2>
+            <div class="form-group">
+                <label for="archivo-verificar">Seleccionar archivo de audio para verificar:</label>
+                <div class="file-input-container">
+                    <input type="file" id="archivo-verificar" class="form-control" accept="audio/*" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('archivo-verificar').click()">
+                        📁 Seleccionar Archivo de Audio
+                    </button>
+                    <span id="archivo-seleccionado" class="archivo-info"></span>
+                </div>
+            </div>
+            
+            <div class="verificacion-content" id="verificacion-content" style="display: none;">
+                <!-- Reproductor de Audio -->
+                <div class="audio-player-container">
+                    <h3>🎵 Reproductor de Audio</h3>
+                    <audio id="audio-player" controls style="width: 100%; margin-bottom: 10px;">
+                        Tu navegador no soporta el elemento de audio.
+                    </audio>
+                    <div class="player-controls">
+                        <button class="btn btn-sm" onclick="togglePlayPause()">⏯️ Play/Pause</button>
+                        <button class="btn btn-sm" onclick="skipBackward()">⏪ -1s</button>
+                        <button class="btn btn-sm" onclick="skipForward()">⏩ +1s</button>
+                        <span class="speed-control">
+                            Velocidad: 
+                            <select id="speed-select" onchange="changeSpeed()">
+                                <option value="0.5">0.5x</option>
+                                <option value="0.75">0.75x</option>
+                                <option value="1" selected>1x</option>
+                                <option value="1.25">1.25x</option>
+                                <option value="1.5">1.5x</option>
+                                <option value="2">2x</option>
+                            </select>
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Editor de Transcripción -->
+                <div class="transcript-editor-container">
+                    <h3>📝 Editor de Transcripción</h3>
+                    <div class="transcript-info">
+                        <strong>Archivo:</strong> <span id="archivo-nombre"></span><br>
+                        <strong>Hash SHA256:</strong> <span id="archivo-hash"></span>
+                    </div>
+                    <textarea id="transcript-editor" class="transcript-textarea" placeholder="La transcripción aparecerá aquí..."></textarea>
+                    <div class="editor-controls">
+                        <button class="btn btn-success" onclick="guardarTranscripcion()">💾 Guardar Cambios</button>
+                        <button class="btn btn-info" onclick="insertarTimestamp()">⏰ Insertar Timestamp</button>
+                        <button class="btn btn-warning" onclick="resetearTranscripcion()">🔄 Resetear</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Chat de WhatsApp -->
+        <div class="section-card chat-container" id="chat-container">
+            <h2 class="section-title">Integración con Chat de WhatsApp</h2>
+            <div class="form-group">
+                <label for="chat-file">Cargar archivo de chat de WhatsApp (.txt):</label>
+                <input type="file" id="chat-file" class="form-control" accept=".txt">
+            </div>
+            <button class="btn" onclick="cargarChat()">📱 Cargar Chat</button>
+            <button class="btn btn-success" onclick="insertarTranscripcion()">➕ Insertar Transcripción</button>
+            <button class="btn btn-warning" onclick="descargarChatModificado()">💾 Descargar Chat Modificado</button>
+            
+            <div class="form-group" style="margin-top: 20px;">
+                <label for="chat-content">Contenido del chat:</label>
+                <textarea id="chat-content" class="chat-textarea" placeholder="El contenido del chat aparecerá aquí..."></textarea>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let resultadosTranscripcion = [];
+        let chatLines = [];
+        let chatModificado = [];
+        
+        // Función para mostrar alertas
+        function mostrarAlerta(mensaje, tipo = 'info') {
+            const alertDiv = document.createElement('div');
+            alertDiv.className = `alert alert-${tipo}`;
+            alertDiv.textContent = mensaje;
+            document.getElementById('results-container').insertBefore(alertDiv, document.getElementById('results-container').firstChild);
+            
+            setTimeout(() => {
+                alertDiv.remove();
+            }, 5000);
+        }
+        
+        // Función para actualizar progreso
+        function actualizarProgreso(porcentaje, texto) {
+            document.getElementById('progress-container').style.display = 'block';
+            document.getElementById('progress-fill').style.width = porcentaje + '%';
+            document.getElementById('progress-text').textContent = texto;
+        }
+        
+        // Función para ocultar progreso
+        function ocultarProgreso() {
+            document.getElementById('progress-container').style.display = 'none';
+        }
+        
+        // Transcribir audios (individual o múltiples)
+        async function transcribirAudios() {
+            const fileInput = document.getElementById('audio-files');
+            const expediente = document.getElementById('caso-expediente').value;
+            
+            if (!expedienteActual) {
+                mostrarAlerta('Por favor seleccione un expediente primero', 'warning');
+                return;
+            }
+            
+            if (!fileInput.files.length) {
+                mostrarAlerta('Por favor seleccione al menos un archivo de audio', 'danger');
+                return;
+            }
+            
+            // Subir archivos
+            const archivos = [];
+            const totalArchivos = fileInput.files.length;
+            
+            try {
+                actualizarProgreso(10, 'Subiendo archivos...');
+                
+                for (let i = 0; i < totalArchivos; i++) {
+                    const formData = new FormData();
+                    formData.append('archivo', fileInput.files[i]);
+                    formData.append('expediente', expediente);
+                    formData.append('sesion_id', expedienteActual);
+                    
+                    const uploadResponse = await fetch('/api/upload-audio', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (uploadResponse.ok) {
+                        const uploadData = await uploadResponse.json();
+                        archivos.push(uploadData.archivo_path);
+                    }
+                    
+                    // Actualizar progreso de subida
+                    const progresoSubida = 10 + (i + 1) / totalArchivos * 20;
+                    actualizarProgreso(progresoSubida, `Subiendo archivo ${i + 1}/${totalArchivos}...`);
+                }
+                
+                if (archivos.length === 0) {
+                    mostrarAlerta('No se pudieron subir los archivos', 'danger');
+                    return;
+                }
+                
+                // Transcribir archivos
+                actualizarProgreso(30, `Transcribiendo ${archivos.length} archivo(s)...`);
+                
+                const response = await fetch('/api/transcribir-lote', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        archivos: archivos,
+                        assemblyai_key: apiKey,
+                        caso_expediente: expediente
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    actualizarProgreso(100, 'Transcripción completada');
+                    mostrarResultadosLote(result);
+                    resultadosTranscripcion = result.resultados;
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                mostrarAlerta('Error: ' + error.message, 'danger');
+            } finally {
+                setTimeout(ocultarProgreso, 2000);
+            }
+        }
+        
+        
+        
+        // Mostrar resultado individual
+        function mostrarResultado(resultado, tipo) {
+            const container = document.getElementById('results-container');
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `result-item ${tipo}`;
+            
+            resultDiv.innerHTML = `
+                <div class="file-info">📁 ${resultado.archivo}</div>
+                <div class="hash-info">🔐 SHA256: ${resultado.hash}</div>
+                <div class="transcripcion-text">${resultado.transcripcion}</div>
+            `;
+            
+            container.appendChild(resultDiv);
+        }
+        
+        // Mostrar resultados de transcripción
+        function mostrarResultadosLote(resultado) {
+            const container = document.getElementById('results-container');
+            
+            // Mostrar resumen
+            const resumenDiv = document.createElement('div');
+            resumenDiv.className = 'alert alert-info';
+            resumenDiv.innerHTML = `
+                <strong>Resumen de transcripción:</strong><br>
+                ✅ Procesados: ${resultado.total_procesados}<br>
+                ❌ Errores: ${resultado.total_errores}
+            `;
+            container.appendChild(resumenDiv);
+            
+            // Mostrar resultados exitosos
+            resultado.resultados.forEach(res => {
+                mostrarResultado(res, 'success');
+            });
+            
+            // Mostrar errores
+            resultado.errores.forEach(err => {
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'result-item error';
+                errorDiv.innerHTML = `
+                    <div class="file-info">❌ ${err.archivo}</div>
+                    <div style="color: #e74c3c;">Error: ${err.error}</div>
+                `;
+                container.appendChild(errorDiv);
+            });
+            
+            // Configurar selector de verificación
+            configurarSelectorVerificacion();
+            
+            // Mostrar sección de verificación si hay resultados
+            if (resultado.total_procesados > 0) {
+                document.getElementById('verificacion-container').style.display = 'block';
+                document.getElementById('whatsapp-container').style.display = 'block';
+            }
+        }
+        
+        // Cargar chat de WhatsApp
+        async function cargarChat() {
+            const fileInput = document.getElementById('chat-file');
+            
+            if (!fileInput.files[0]) {
+                mostrarAlerta('Por favor seleccione un archivo de chat', 'danger');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('archivo', fileInput.files[0]);
+            
+            try {
+                const uploadResponse = await fetch('/api/upload-chat', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('Error al subir archivo de chat');
+                }
+                
+                const uploadData = await uploadResponse.json();
+                
+                const response = await fetch('/api/cargar-chat-whatsapp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        archivo_path: uploadData.archivo_path
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    chatLines = result.chat_lines;
+                    chatModificado = [...chatLines];
+                    document.getElementById('chat-content').value = chatLines.join('');
+                    document.getElementById('chat-container').style.display = 'block';
+                    mostrarAlerta('Chat cargado exitosamente', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                mostrarAlerta('Error: ' + error.message, 'danger');
+            }
+        }
+        
+        // Insertar transcripción en chat
+        async function insertarTranscripcion() {
+            if (resultadosTranscripcion.length === 0) {
+                mostrarAlerta('No hay transcripciones disponibles', 'danger');
+                return;
+            }
+            
+            if (chatLines.length === 0) {
+                mostrarAlerta('No hay chat cargado', 'danger');
+                return;
+            }
+            
+            // Permitir seleccionar transcripción
+            const transcripcion = resultadosTranscripcion[0]; // Por ahora toma la primera
+            
+            try {
+                const response = await fetch('/api/insertar-transcripcion-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        chat_lines: chatLines,
+                        nombre_audio: transcripcion.archivo,
+                        transcripcion: transcripcion.transcripcion,
+                        hash_audio: transcripcion.hash
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    chatModificado = result.chat_modificado;
+                    document.getElementById('chat-content').value = chatModificado.join('');
+                    mostrarAlerta('Transcripción insertada en el chat', 'success');
+                } else {
+                    throw new Error(result.error);
+                }
+                
+            } catch (error) {
+                mostrarAlerta('Error: ' + error.message, 'danger');
+            }
+        }
+        
+        // Descargar chat modificado
+        function descargarChatModificado() {
+            if (chatModificado.length === 0) {
+                mostrarAlerta('No hay chat modificado para descargar', 'danger');
+                return;
+            }
+            
+            const contenido = chatModificado.join('');
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `chat_modificado_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            mostrarAlerta('Chat modificado descargado', 'success');
+        }
+        
+        // Limpiar resultados
+        function limpiarResultados() {
+            document.getElementById('results-container').innerHTML = '';
+            resultadosTranscripcion = [];
+            mostrarAlerta('Resultados limpiados', 'info');
+        }
+        
+        // Descargar transcripciones
+        function descargarTranscripciones() {
+            if (resultadosTranscripcion.length === 0) {
+                mostrarAlerta('No hay transcripciones para descargar', 'danger');
+                return;
+            }
+            
+            let contenido = `TRANSCRIPCIONES DE AUDIOS\n`;
+            contenido += `Fecha: ${new Date().toLocaleString()}\n`;
+            contenido += `Total de archivos: ${resultadosTranscripcion.length}\n`;
+            contenido += `=${'='.repeat(50)}\n\n`;
+            
+            resultadosTranscripcion.forEach((resultado, index) => {
+                contenido += `ARCHIVO ${index + 1}:\n`;
+                contenido += `Nombre: ${resultado.archivo}\n`;
+                contenido += `Hash SHA256: ${resultado.hash}\n`;
+                contenido += `Transcripción:\n${resultado.transcripcion}\n`;
+                contenido += `-${'-'.repeat(50)}\n\n`;
+            });
+            
+            const blob = new Blob([contenido], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `transcripciones_${new Date().toISOString().split('T')[0]}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            window.URL.revokeObjectURL(url);
+            
+            mostrarAlerta('Transcripciones descargadas exitosamente', 'success');
+        }
+        
+        // Variables para verificación
+        let archivoActual = null;
+        let transcripcionOriginal = '';
+        let archivoSeleccionado = null;
+        
+        // Variables para WhatsApp
+        let chatWhatsApp = null;
+        let archivosWhatsApp = [];
+        
+        // Configurar selector de archivo para verificación
+        function configurarSelectorVerificacion() {
+            const fileInput = document.getElementById('archivo-verificar');
+            const archivoInfo = document.getElementById('archivo-seleccionado');
+            
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    archivoSeleccionado = file;
+                    archivoInfo.textContent = `📁 ${file.name}`;
+                    cargarArchivoParaVerificacion(file);
+                } else {
+                    archivoSeleccionado = null;
+                    archivoInfo.textContent = '';
+                    document.getElementById('verificacion-content').style.display = 'none';
+                }
+            });
+        }
+        
+        // Cargar archivo para verificación
+        async function cargarArchivoParaVerificacion(file) {
+            if (!file) return;
+            
+            try {
+                // Subir archivo al servidor
+                const formData = new FormData();
+                formData.append('archivo', file);
+                
+                const uploadResponse = await fetch('/api/upload-audio', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('Error al subir archivo');
+                }
+                
+                const uploadData = await uploadResponse.json();
+                
+                // Calcular hash del archivo
+                const hashResponse = await fetch('/api/calcular-hash-archivo', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        archivo_path: uploadData.archivo_path
+                    })
+                });
+                
+                const hashResult = await hashResponse.json();
+                
+                if (!hashResult.success) {
+                    throw new Error('Error al calcular hash');
+                }
+                
+                // Buscar si ya existe una transcripción para este archivo
+                // Primero buscar por nombre exacto
+                let transcripcionExistente = resultadosTranscripcion.find(r => r.archivo === file.name);
+                
+                // Si no se encuentra, buscar por nombre base (sin timestamp)
+                if (!transcripcionExistente) {
+                    const nombreBase = file.name.replace(/_\d{8}_\d{6}\./, '.');
+                    transcripcionExistente = resultadosTranscripcion.find(r => {
+                        const nombreBaseResultado = r.archivo.replace(/_\d{8}_\d{6}\./, '.');
+                        return nombreBaseResultado === nombreBase;
+                    });
+                }
+                
+                console.log('Buscando transcripción para:', file.name);
+                console.log('Nombre base:', file.name.replace(/_\d{8}_\d{6}\./, '.'));
+                console.log('Resultados en sesión:', resultadosTranscripcion);
+                
+                // Si no se encuentra en la sesión actual, buscar en el servidor
+                if (!transcripcionExistente) {
+                    console.log('No encontrado en sesión, buscando en servidor...');
+                    try {
+                        const buscarResponse = await fetch('/api/buscar-transcripcion', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({
+                                archivo: file.name,
+                                hash: hashResult.hash
+                            })
+                        });
+                        
+                        console.log('Respuesta del servidor:', buscarResponse.status);
+                        
+                        if (buscarResponse.ok) {
+                            const buscarData = await buscarResponse.json();
+                            console.log('Datos del servidor:', buscarData);
+                            
+                            if (buscarData.success && buscarData.transcripcion) {
+                                transcripcionExistente = {
+                                    archivo: file.name,
+                                    hash: hashResult.hash,
+                                    transcripcion: buscarData.transcripcion
+                                };
+                                console.log('Transcripción encontrada en servidor:', transcripcionExistente);
+                            } else {
+                                console.log('No se encontró transcripción en servidor');
+                            }
+                        } else {
+                            console.log('Error en respuesta del servidor:', buscarResponse.status);
+                        }
+                    } catch (error) {
+                        console.log('Error al buscar transcripción en servidor:', error);
+                    }
+                } else {
+                    console.log('Transcripción encontrada en sesión:', transcripcionExistente);
+                }
+                
+                console.log('Archivo seleccionado:', file.name);
+                console.log('Resultados de transcripción disponibles:', resultadosTranscripcion);
+                console.log('Transcripción encontrada:', transcripcionExistente);
+                
+                // Crear objeto de archivo actual
+                archivoActual = {
+                    archivo: file.name,
+                    hash: hashResult.hash,
+                    transcripcion: transcripcionExistente ? transcripcionExistente.transcripcion : '',
+                    archivo_path: uploadData.archivo_path
+                };
+                
+                transcripcionOriginal = archivoActual.transcripcion;
+                
+                // Actualizar información del archivo
+                document.getElementById('archivo-nombre').textContent = archivoActual.archivo;
+                document.getElementById('archivo-hash').textContent = archivoActual.hash;
+                
+                // Cargar transcripción en el editor
+                const editor = document.getElementById('transcript-editor');
+                editor.value = archivoActual.transcripcion;
+                
+                console.log('Transcripción cargada en editor:', archivoActual.transcripcion);
+                console.log('Valor del editor:', editor.value);
+                
+                // Configurar reproductor de audio
+                const audioPlayer = document.getElementById('audio-player');
+                const audioUrl = `/audios/${uploadData.filename}`;
+                audioPlayer.src = audioUrl;
+                audioPlayer.load();
+                
+                // Mostrar contenido de verificación
+                document.getElementById('verificacion-content').style.display = 'block';
+                
+                if (transcripcionExistente && transcripcionExistente.transcripcion) {
+                    mostrarAlerta('Transcripción existente cargada', 'info');
+                } else {
+                    mostrarAlerta('Archivo cargado. No se encontró transcripción existente. Puedes crear una nueva.', 'warning');
+                }
+                
+            } catch (error) {
+                mostrarAlerta('Error al cargar archivo: ' + error.message, 'danger');
+            }
+        }
+        
+        // Controles del reproductor
+        function togglePlayPause() {
+            const audio = document.getElementById('audio-player');
+            if (audio.paused) {
+                audio.play();
+            } else {
+                audio.pause();
+            }
+        }
+        
+        function skipBackward() {
+            const audio = document.getElementById('audio-player');
+            audio.currentTime = Math.max(0, audio.currentTime - 1);
+        }
+        
+        function skipForward() {
+            const audio = document.getElementById('audio-player');
+            audio.currentTime = Math.min(audio.duration, audio.currentTime + 1);
+        }
+        
+        function changeSpeed() {
+            const audio = document.getElementById('audio-player');
+            const speed = document.getElementById('speed-select').value;
+            audio.playbackRate = parseFloat(speed);
+        }
+        
+        // Controles del editor
+        function guardarTranscripcion() {
+            if (!archivoActual) return;
+            
+            const nuevaTranscripcion = document.getElementById('transcript-editor').value;
+            
+            // Actualizar en los resultados si existe
+            const index = resultadosTranscripcion.findIndex(r => r.archivo === archivoActual.archivo);
+            if (index !== -1) {
+                resultadosTranscripcion[index].transcripcion = nuevaTranscripcion;
+            } else {
+                // Si no existe, agregarlo a los resultados
+                resultadosTranscripcion.push({
+                    archivo: archivoActual.archivo,
+                    hash: archivoActual.hash,
+                    transcripcion: nuevaTranscripcion
+                });
+            }
+            
+            // Actualizar el objeto actual
+            archivoActual.transcripcion = nuevaTranscripcion;
+            
+            mostrarAlerta('Transcripción guardada exitosamente', 'success');
+        }
+        
+        function insertarTimestamp() {
+            const editor = document.getElementById('transcript-editor');
+            const audio = document.getElementById('audio-player');
+            const tiempo = audio.currentTime || 0;
+            const minutos = Math.floor(tiempo / 60);
+            const segundos = Math.floor(tiempo % 60);
+            const timestamp = `[${minutos}:${segundos.toString().padStart(2, '0')}] `;
+            
+            const posicion = editor.selectionStart;
+            const texto = editor.value;
+            const nuevoTexto = texto.substring(0, posicion) + timestamp + texto.substring(posicion);
+            
+            editor.value = nuevoTexto;
+            editor.focus();
+            editor.setSelectionRange(posicion + timestamp.length, posicion + timestamp.length);
+        }
+        
+        function resetearTranscripcion() {
+            if (confirm('¿Está seguro de que desea resetear la transcripción a su estado original?')) {
+                document.getElementById('transcript-editor').value = transcripcionOriginal;
+                mostrarAlerta('Transcripción reseteada', 'info');
+            }
+        }
+        
+        // Atajos de teclado
+        document.addEventListener('keydown', function(e) {
+            // Solo si estamos en la sección de verificación
+            if (document.getElementById('verificacion-content').style.display !== 'none') {
+                if (e.key === 'Escape') {
+                    e.preventDefault();
+                    togglePlayPause();
+                } else if (e.key === 'F1') {
+                    e.preventDefault();
+                    skipBackward();
+                } else if (e.key === 'F2') {
+                    e.preventDefault();
+                    skipForward();
+                } else if (e.ctrlKey && e.key === 'j') {
+                    e.preventDefault();
+                    insertarTimestamp();
+                } else if (e.ctrlKey && e.key === 's') {
+                    e.preventDefault();
+                    guardarTranscripcion();
+                }
+            }
+        });
+        
+        // Funciones para WhatsApp
+        function configurarWhatsApp() {
+            const fileInput = document.getElementById('chat-whatsapp-file');
+            const archivoInfo = document.getElementById('chat-whatsapp-seleccionado');
+            
+            fileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    chatWhatsApp = file;
+                    archivoInfo.textContent = `📁 ${file.name}`;
+                    cargarChatWhatsApp(file);
+                } else {
+                    chatWhatsApp = null;
+                    archivoInfo.textContent = '';
+                    document.getElementById('whatsapp-content').style.display = 'none';
+                }
+            });
+        }
+        
+        async function cargarChatWhatsApp(file) {
+            try {
+                // Subir archivo al servidor
+                const formData = new FormData();
+                formData.append('archivo', file);
+                
+                const uploadResponse = await fetch('/api/upload-chat', {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                if (!uploadResponse.ok) {
+                    throw new Error('Error al subir archivo');
+                }
+                
+                const uploadData = await uploadResponse.json();
+                
+                // Parsear chat
+                const parseResponse = await fetch('/api/parsear-chat-whatsapp', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        archivo_path: uploadData.archivo_path
+                    })
+                });
+                
+                if (!parseResponse.ok) {
+                    throw new Error('Error al parsear chat');
+                }
+                
+                const parseData = await parseResponse.json();
+                archivosWhatsApp = parseData.archivos_audio;
+                
+                // Mostrar archivos encontrados
+                mostrarArchivosWhatsApp();
+                
+                // Mostrar contenido de WhatsApp
+                document.getElementById('whatsapp-content').style.display = 'block';
+                
+                mostrarAlerta(`Se encontraron ${archivosWhatsApp.length} archivos de audio en el chat`, 'info');
+                
+            } catch (error) {
+                mostrarAlerta('Error al cargar chat: ' + error.message, 'danger');
+            }
+        }
+        
+        function mostrarArchivosWhatsApp() {
+            const container = document.getElementById('archivos-whatsapp-lista');
+            container.innerHTML = '';
+            
+            archivosWhatsApp.forEach(archivo => {
+                const div = document.createElement('div');
+                div.className = 'archivo-item';
+                
+                // Verificar si existe transcripción
+                const tieneTranscripcion = resultadosTranscripcion.some(r => 
+                    r.archivo.includes(archivo.archivo.replace(/\.(mp3|wav|m4a|ogg|opus|aac)$/, ''))
+                );
+                
+                if (tieneTranscripcion) {
+                    div.classList.add('transcripcion-existe');
+                } else {
+                    div.classList.add('transcripcion-no-existe');
+                }
+                
+                div.innerHTML = `
+                    <div>
+                        <strong>${archivo.archivo}</strong><br>
+                        <small>${archivo.fecha_hora} - ${archivo.remitente}</small>
+                    </div>
+                    <div>
+                        ${tieneTranscripcion ? '✅ Transcripción disponible' : '❌ Sin transcripción'}
+                    </div>
+                `;
+                
+                container.appendChild(div);
+            });
+        }
+        
+        async function insertarTranscripcionesWhatsApp() {
+            if (!chatWhatsApp || archivosWhatsApp.length === 0) {
+                mostrarAlerta('No hay chat cargado o archivos de audio', 'warning');
+                return;
+            }
+            
+            try {
+                let insertados = 0;
+                let errores = 0;
+                
+                for (const archivo of archivosWhatsApp) {
+                    // Buscar transcripción correspondiente
+                    const transcripcion = resultadosTranscripcion.find(r => 
+                        r.archivo.includes(archivo.archivo.replace(/\.(mp3|wav|m4a|ogg|opus|aac)$/, ''))
+                    );
+                    
+                    if (transcripcion) {
+                        try {
+                            const response = await fetch('/api/insertar-transcripcion-whatsapp', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    archivo_path: chatWhatsApp.path || chatWhatsApp.name,
+                                    nombre_audio: archivo.archivo,
+                                    transcripcion: transcripcion.transcripcion,
+                                    hash_audio: transcripcion.hash
+                                })
+                            });
+                            
+                            if (response.ok) {
+                                insertados++;
+                            } else {
+                                errores++;
+                            }
+                        } catch (error) {
+                            errores++;
+                        }
+                    } else {
+                        errores++;
+                    }
+                }
+                
+                mostrarAlerta(`Transcripciones insertadas: ${insertados}, Errores: ${errores}`, 
+                    errores === 0 ? 'success' : 'warning');
+                
+                // Actualizar lista
+                mostrarArchivosWhatsApp();
+                
+            } catch (error) {
+                mostrarAlerta('Error al insertar transcripciones: ' + error.message, 'danger');
+            }
+        }
+        
+        function descargarChatModificado() {
+            if (!chatWhatsApp) {
+                mostrarAlerta('No hay chat cargado', 'warning');
+                return;
+            }
+            
+            // Crear enlace de descarga
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(chatWhatsApp);
+            link.download = `chat_modificado_${new Date().toISOString().slice(0, 10)}.txt`;
+            link.click();
+            
+            mostrarAlerta('Chat modificado descargado', 'success');
+        }
+        
+        // Inicializar cuando se carga la página
+        // Variables globales para expedientes
+        let expedientesDisponibles = [];
+        let expedienteActual = null;
+        let archivosExpediente = [];
+
+        // Cargar expedientes disponibles al iniciar
+        async function cargarExpedientesDisponibles() {
+            try {
+                const response = await fetch('/api/casos_completos');
+                const casos = await response.json();
+                
+                expedientesDisponibles = casos.map(caso => ({
+                    sesion_id: caso.sesion_id,
+                    expediente: caso.expediente,
+                    nombre_caso: caso.nombre_caso,
+                    fecha_creacion: caso.fecha_creacion
+                }));
+                
+                actualizarSelectorExpedientes();
+            } catch (error) {
+                console.error('Error al cargar expedientes:', error);
+            }
+        }
+
+        // Actualizar el selector de expedientes
+        function actualizarSelectorExpedientes() {
+            const selector = document.getElementById('expediente-selector');
+            selector.innerHTML = '<option value="">Seleccionar expediente...</option>';
+            
+            expedientesDisponibles.forEach(expediente => {
+                const option = document.createElement('option');
+                option.value = expediente.sesion_id;
+                option.textContent = `${expediente.expediente} - ${expediente.nombre_caso}`;
+                selector.appendChild(option);
+            });
+        }
+
+        // Cargar archivos del expediente seleccionado
+        async function cargarArchivosExpediente() {
+            const selector = document.getElementById('expediente-selector');
+            const sesionId = selector.value;
+            
+            if (!sesionId) {
+                document.getElementById('archivos-expediente').style.display = 'none';
+                document.getElementById('caso-expediente').value = '';
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/api/estructura-caso/${sesionId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    expedienteActual = sesionId;
+                    const expediente = expedientesDisponibles.find(e => e.sesion_id === sesionId);
+                    document.getElementById('caso-expediente').value = expediente.expediente;
+                    
+                    // Recopilar todos los archivos de audio
+                    archivosExpediente = [];
+                    Object.keys(data.estructura).forEach(carpeta => {
+                        if (carpeta === 'audios' && data.estructura[carpeta]) {
+                            data.estructura[carpeta].forEach(archivo => {
+                                archivosExpediente.push({
+                                    nombre: archivo.nombre,
+                                    tamaño: archivo.tamaño,
+                                    hash: archivo.hash,
+                                    ruta: `${sesionId}/audios/${archivo.nombre}`
+                                });
+                            });
+                        }
+                    });
+                    
+                    mostrarArchivosExpediente();
+                } else {
+                    mostrarAlerta('Error al cargar archivos del expediente', 'error');
+                }
+            } catch (error) {
+                console.error('Error al cargar archivos:', error);
+                mostrarAlerta('Error al cargar archivos del expediente', 'error');
+            }
+        }
+
+        // Mostrar archivos del expediente
+        function mostrarArchivosExpediente() {
+            const container = document.getElementById('archivos-expediente');
+            const lista = document.getElementById('lista-archivos');
+            
+            if (archivosExpediente.length === 0) {
+                lista.innerHTML = '<p>No hay archivos de audio en este expediente.</p>';
+            } else {
+                lista.innerHTML = archivosExpediente.map(archivo => `
+                    <div class="archivo-item">
+                        <div class="archivo-info">
+                            <span class="archivo-nombre">🎵 ${archivo.nombre}</span>
+                            <span class="archivo-tamaño">(${formatearTamaño(archivo.tamaño)})</span>
+                        </div>
+                        <div class="archivo-hash">${archivo.hash.substring(0, 16)}...</div>
+                    </div>
+                `).join('');
+            }
+            
+            container.style.display = 'block';
+        }
+
+        // Formatear tamaño de archivo
+        function formatearTamaño(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        // Buscar expediente manualmente
+        function buscarExpediente() {
+            const busqueda = document.getElementById('busqueda-manual');
+            busqueda.style.display = busqueda.style.display === 'none' ? 'block' : 'none';
+        }
+
+        // Cargar expediente manual
+        async function cargarExpedienteManual() {
+            const expediente = document.getElementById('expediente-manual').value.trim();
+            
+            if (!expediente) {
+                mostrarAlerta('Por favor ingresa un número de expediente', 'warning');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/cargar-expediente', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ expediente: expediente })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    expedienteActual = data.sesion_id;
+                    document.getElementById('caso-expediente').value = expediente;
+                    document.getElementById('expediente-manual').value = '';
+                    document.getElementById('busqueda-manual').style.display = 'none';
+                    
+                    // Cargar archivos del expediente
+                    await cargarArchivosExpediente();
+                    mostrarAlerta('Expediente cargado exitosamente', 'success');
+                } else {
+                    mostrarAlerta(data.error || 'Error al cargar expediente', 'error');
+                }
+            } catch (error) {
+                console.error('Error al cargar expediente:', error);
+                mostrarAlerta('Error al cargar expediente', 'error');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            configurarSelectorVerificacion();
+            configurarWhatsApp();
+            cargarExpedientesDisponibles();
+        });
+    </script>
+</body>
+</html>

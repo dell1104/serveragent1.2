@@ -1,0 +1,515 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acta de Aporte</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style_modern.css') }}}">
+</head>
+<body class="acta-body">
+    <div id="datosModal" class="modal no-print">
+        <div class="modal-content">
+            <h2>Completar Datos del Firmante</h2>
+            <p style="color: #666; margin-bottom: 20px;">Complete los datos del ciudadano que firmó el documento</p>
+            
+            <div style="margin-bottom: 15px;">
+                <label for="aclaracionInput">Aclaración (Nombre y Apellido):</label>
+                <input type="text" id="aclaracionInput" placeholder="Ingrese nombre y apellido completo" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <label for="dniInput">DNI:</label>
+                <input type="text" id="dniInput" placeholder="Ingrese número de DNI" style="width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+            </div>
+            
+            <button id="saveDatosButton" class="save" style="width: 100%; padding: 12px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px;">
+                ✅ Aplicar Firma y Datos
+            </button>
+        </div>
+    </div>
+
+    <div style="display: flex;">
+        <div class="container" id="acta-content" style="margin-right: 20px;">
+            <div id="contenido-acta"></div>
+
+            <div id="firma-section" style="text-align: center; margin-top: 20px;">
+                <p><span id="firma-slot" class="signature-line"></span></p>
+                <p><span id="aclaracion-slot"></span></p>
+                <p><span id="dni-slot"></span></p>
+            </div>
+            
+            <table class="alineado" style="width: 100%; border: none; margin-top: 50px; text-align: center;">
+                <tr>
+                <td style="width: 45%; vertical-align: bottom;">
+                    <select id="actuante-select" class="signer-select no-print">
+                        <option value="">Seleccione Firma Izquierda...</option>
+                    </select>
+                    <img id="firma-actuante-img" src="" alt="Firma Actuante" style="height: 140px; display: none; margin-bottom: 5px; text-align: center;">
+                    <p id="nombre-actuante" style="border-top: 1px solid black; margin-top: 5px; padding-top: 5px; min-height: 20px;"></p>
+                </td>
+                <td style="width: 10%;">
+                        <img src="{{ url_for('static', filename='image1.png') }}}" alt="Logo" class="logo" crossorigin="anonymous">
+                </td>
+                <td style="width: 45%; vertical-align: bottom;">
+                    <select id="secretario-select" class="signer-select no-print">
+                        <option value="">Seleccione Firma Derecha...</option>
+                    </select>
+                    <img id="firma-secretario-img" src="" alt="Firma Secretario" style="height: 140px; display: none; margin-bottom: 5px; text-align: center;">
+                    <p id="nombre-secretario" style="border-top: 1px solid black; margin-top: 5px; padding-top: 5px; min-height: 20px;"></p>
+                </td>
+                </tr>
+            </table>
+        </div>
+        
+        <div class="no-print" style="display: flex; flex-direction: column; justify-content: flex-start; padding-top: 20px; width: 220px; box-sizing: border-box;">
+            <button class="btn btn-primary" onclick="modificarActa()">Modificar Datos</button>
+            <button class="btn btn-info" id="requireSignatureButton">Requerir Firma (Ciudadano)</button>
+            <button class="btn btn-warning" id="printButton" onclick="imprimirActa()">Imprimir</button>
+            <button class="btn btn-success" id="downloadButton" onclick="descargarComprimido()" style="display: none;">Descargar Comprimido</button>
+            <button class="btn btn-info" id="openFolderButton" onclick="abrirCarpeta()">Abrir Carpeta</button>
+            <button class="btn btn-danger" id="finalizarCasoButton" onclick="finalizarCaso()">Finalizar Caso</button>
+            <button class="btn btn-secondary" onclick="window.location.href='/'">Menu Principal</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='utils.js') }}}"></script>
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        let receivedSignatureImage = null;
+        let permanentSignatures = {};
+        const PORTAL_URL = window.location.origin;
+
+        function imprimirActa() {
+            window.print();
+        }
+
+        async function descargarComprimido() {
+            const sesionId = params.get('sesion_portal');
+            if (!sesionId) {
+                alert('No se encontró la información de la sesión.');
+                return;
+            }
+            const downloadUrl = `${PORTAL_URL}/descargar_comprimido/${sesionId}`;
+            window.location.href = downloadUrl;
+        }
+
+        async function abrirCarpeta() {
+            const sesionId = params.get('sesion_portal');
+            if (!sesionId) {
+                alert('No se encontró la información de la sesión.');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`${PORTAL_URL}/api/abrir_carpeta/${sesionId}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('Carpeta abierta:', result.ruta);
+                } else {
+                    alert('Error al abrir la carpeta: ' + result.error);
+                }
+            } catch (error) {
+                console.error('Error al abrir carpeta:', error);
+                alert('Error al abrir la carpeta');
+            }
+        }
+
+        async function finalizarCaso() {
+            const sesionId = params.get('sesion_portal');
+            if (!sesionId) {
+                alert('No se encontró la información de la sesión.');
+                return;
+            }
+
+            if (!confirm('¿Está seguro de que desea finalizar este caso? Esta acción eliminará todos los archivos aportados y cerrará la sesión del portal de cliente.')) {
+                return;
+            }
+
+            try {
+                // Crear comprimido final
+                const response = await fetch(`${PORTAL_URL}/api/crear_comprimido/${sesionId}`, {
+                    method: 'POST'
+                });
+                
+                if (response.ok) {
+                    // Marcar caso como completado
+                    const finalizarResponse = await fetch(`${PORTAL_URL}/api/finalizar_caso/${sesionId}`, {
+                        method: 'POST'
+                    });
+                    
+                    if (finalizarResponse.ok) {
+                        alert('Caso finalizado exitosamente. Se han eliminado los archivos individuales y se ha creado el comprimido final.');
+                        // Redirigir al menú principal
+                        window.location.href = '/';
+                    } else {
+                        alert('Error al finalizar el caso');
+                    }
+                } else {
+                    alert('Error al crear el comprimido final');
+                }
+            } catch (error) {
+                console.error('Error al finalizar caso:', error);
+                alert('Error al finalizar el caso');
+            }
+        }
+
+        function handleSignatureArrival(data) {
+            console.log('🎯 handleSignatureArrival llamado con datos:', data);
+            receivedSignatureImage = data.signature;
+            const firmaSlot = document.getElementById('firma-slot');
+            
+            console.log('📝 Actualizando firma-slot con la firma recibida');
+            
+            // Mostrar la firma en el acta
+            firmaSlot.innerHTML = `
+                <div style="text-align: center; padding: 15px; background: #d4edda; border: 1px solid #c3e6cb; border-radius: 5px;">
+                    <h4 style="color: #155724; margin-bottom: 15px;">🎉 ¡Firma Ciudadano Recibida!</h4>
+                    <div style="text-align: center; margin: 15px 0;">
+                        <img src="${data.signature}" alt="Firma del ciudadano" style="height: 120px; border: 1px solid #ddd; border-radius: 5px;">
+                        <p style="margin-top: 10px; font-size: 0.9em; color: #155724;">
+                            <strong>Firma digital del ciudadano recibida y validada</strong>
+                        </p>
+                    </div>
+                    <p style="margin-top: 15px; font-size: 0.9em; color: #155724;">
+                        <strong>💡 Nota:</strong> La firma ha sido recibida desde el portal de evidencias. 
+                        Ahora complete los datos del firmante.
+                    </p>
+                </div>
+            `;
+            
+            console.log('🔍 Verificando si hay datos de firma para mostrar modal...');
+            
+            // Mostrar el modal para completar datos del firmante
+            if (data && data.signature) {
+                console.log('✅ Mostrando modal de datos...');
+                document.getElementById('datosModal').style.display = 'block';
+            } else {
+                console.log('❌ No hay datos de firma válidos');
+            }
+            
+            // Ocultar el botón de requerir firma ya que ya se completó
+            const requireButton = document.getElementById('requireSignatureButton');
+            if (requireButton) {
+                console.log('🔒 Ocultando botón de requerir firma');
+                requireButton.style.display = 'none';
+            }
+            
+            console.log('✅ handleSignatureArrival completado exitosamente');
+        }
+
+        function applySignatureAndData() {
+            const aclaracion = document.getElementById('aclaracionInput').value;
+            const dni = document.getElementById('dniInput').value;
+            if (!aclaracion || !dni) { return alert("Debe completar ambos campos."); }
+            document.getElementById('firma-slot').innerHTML = `<img src="${receivedSignatureImage}" alt="Firma digital" style="height: 120px; vertical-align: middle;"/>`;
+            document.getElementById('aclaracion-slot').textContent = "Aclaración: " + aclaracion;
+            document.getElementById('dni-slot').textContent = "DNI: " + dni;
+            document.getElementById('datosModal').style.display = 'none';
+            document.getElementById('requireSignatureButton').style.display = 'none';
+        }
+
+        function startSignaturePolling(sessionId) {
+            console.log('🚀 Iniciando polling para sessionId:', sessionId);
+            
+            const pollingInterval = setInterval(async () => {
+                try {
+                    console.log('🔍 Polling: verificando firma para sessionId:', sessionId);
+                    const response = await fetch(`${PORTAL_URL}/api/check-signature/${sessionId}`);
+                    const result = await response.json();
+                    console.log('📡 Respuesta del polling:', result);
+                    
+                    if (result.success) {
+                        console.log('✅ Firma encontrada! Deteniendo polling...');
+                        clearInterval(pollingInterval);
+                        handleSignatureArrival(result.data);
+                    } else {
+                        console.log('⏳ Firma aún no disponible...');
+                        
+                        // También verificar si hay una firma disponible para el sesion_id del caso
+                        const sesionPortal = params.get('sesion_portal');
+                        if (sesionPortal && sesionPortal !== sessionId) {
+                            console.log('🔍 Verificando también firma para sesion_portal:', sesionPortal);
+                            try {
+                                const responsePortal = await fetch(`${PORTAL_URL}/api/check-signature/${sesionPortal}`);
+                                const resultPortal = await responsePortal.json();
+                                console.log('📡 Respuesta del polling portal:', resultPortal);
+                                
+                                if (resultPortal.success) {
+                                    console.log('✅ Firma encontrada por sesion_portal! Deteniendo polling...');
+                                    clearInterval(pollingInterval);
+                                    handleSignatureArrival(resultPortal.data);
+                                }
+                            } catch(e) {
+                                console.error("❌ Error en polling portal:", e);
+                            }
+                        }
+                    }
+                } catch(e) { 
+                    console.error("❌ Error en polling:", e); 
+                    // No limpiar el intervalo en caso de error, solo log
+                }
+            }, 3000);
+            
+            // Limpiar el intervalo después de 5 minutos para evitar polling infinito
+            setTimeout(() => {
+                clearInterval(pollingInterval);
+                console.log("⏰ Polling detenido después de 5 minutos");
+            }, 300000);
+        }
+
+        async function requireSignature() {
+            try {
+                const sessionId = "acta-" + Date.now();
+                const expediente = params.get("expediente_completo") || "Documento";
+                const firmaSlot = document.getElementById('firma-slot');
+                
+                // Mostrar estado de registro
+                firmaSlot.innerHTML = `<b style="color: #007bff;">Registrando sesión de firma...</b>`;
+                
+                // Registrar la sesión en el servidor
+                const registerResponse = await fetch(`${PORTAL_URL}/api/register-for-signing`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        sessionId: sessionId, 
+                        displayName: `Firma para: ${expediente}`,
+                        expediente: expediente  // Agregar el expediente para conectar con el portal
+                    })
+                });
+                
+                if (!registerResponse.ok) {
+                    throw new Error('Error al registrar sesión de firma');
+                }
+                
+                // Mostrar información de la sesión de firma (sin enlace externo)
+                firmaSlot.innerHTML = `
+                    <div style="text-align: left; padding: 15px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 5px;">
+                        <h4 style="color: #007bff; margin-bottom: 15px;">✅ Firma Ciudadano Solicitada</h4>
+                        <p><strong>Expediente:</strong> ${expediente}</p>
+                        <p><strong>ID de Sesión:</strong> ${sessionId}</p>
+                        <p><strong>Estado:</strong> <span style="color: #28a745;">Firma habilitada en el portal</span></p>
+                        <hr style="margin: 15px 0;">
+                        <div style="background: #e8f5e8; padding: 15px; border: 1px solid #28a745; border-radius: 5px;">
+                            <p style="margin: 0; color: #155724;">
+                                <strong>📋 Instrucciones:</strong> La firma del ciudadano ha sido habilitada en el portal de evidencias. 
+                                La persona debe ir al portal y completar la firma digital allí.
+                            </p>
+                        </div>
+                        <p style="margin-top: 15px; font-size: 0.9em; color: #6c757d;">
+                            <strong>💡 Nota:</strong> No es necesario enviar enlaces externos. La firma se realiza directamente en el portal.
+                        </p>
+                    </div>
+                `;
+                
+                // Ocultar el modal de datos por ahora
+                document.getElementById('datosModal').style.display = 'none';
+                
+                // Iniciar polling para verificar cuando se reciba la firma
+                startSignaturePolling(sessionId);
+                
+            } catch (error) {
+                console.error('Error al solicitar firma:', error);
+                document.getElementById('firma-slot').innerHTML = `<b style="color:red;">Error al solicitar firma: ${error.message}</b>`;
+            }
+        }
+
+        async function loadAndSetupPermanentSignatures() {
+            try {
+                const response = await fetch(`${PORTAL_URL}/api/get-permanent-signatures`);
+                permanentSignatures = await response.json();
+                const actuanteSelect = document.getElementById('actuante-select');
+                const secretarioSelect = document.getElementById('secretario-select');
+                for (const name in permanentSignatures) {
+                    const option = `<option value="${name}">${name}</option>`;
+                    actuanteSelect.innerHTML += option;
+                    secretarioSelect.innerHTML += option;
+                }
+            } catch (error) {
+                console.error("Error al cargar las firmas permanentes:", error);
+            }
+        }
+
+        function updatePermanentSignature(signerType, selectedName) {
+            const imgElement = document.getElementById(`firma-${signerType}-img`);
+            const nameElement = document.getElementById(`nombre-${signerType}`);
+            if (selectedName && permanentSignatures[selectedName]) {
+                imgElement.src = permanentSignatures[selectedName].signature;
+                imgElement.style.display = 'block';
+                nameElement.textContent = selectedName;
+            } else {
+                imgElement.src = '';
+                imgElement.style.display = 'none';
+                nameElement.textContent = '';
+            }
+        }
+
+        // Función para verificar automáticamente si ya hay una firma disponible
+        async function verificarFirmaDisponible() {
+            const sesionPortal = params.get('sesion_portal');
+            if (!sesionPortal) {
+                console.log('❌ No hay sesion_portal en los parámetros');
+                return;
+            }
+            
+            try {
+                console.log('🔍 Verificando si ya hay una firma disponible para sesion_portal:', sesionPortal);
+                const response = await fetch(`${PORTAL_URL}/api/check-signature/${sesionPortal}`);
+                const result = await response.json();
+                console.log('📡 Respuesta de verificación automática:', result);
+                
+                if (result.success) {
+                    console.log('✅ Firma ya disponible! Mostrando automáticamente...');
+                    handleSignatureArrival(result.data);
+                } else {
+                    console.log('⏳ No hay firma disponible aún');
+                }
+            } catch (error) {
+                console.error('❌ Error al verificar firma disponible:', error);
+            }
+        }
+
+        // --- FUNCIÓN DE INICIALIZACIÓN ---
+        window.onload = async function() {
+            const obtenerParametro = (nombre) => params.get(nombre) || "[No especificado]";
+
+            const nombreCompleto = [
+                obtenerParametro('primer_nombre'),
+                obtenerParametro('segundo_nombre'),
+                obtenerParametro('apellido_paterno'),
+                obtenerParametro('apellido_materno')
+            ].filter(Boolean).join(' ');
+
+            const direccionCompleta = [
+                `Calle ${obtenerParametro('calle')} N° ${obtenerParametro('numeracion')}`,
+                obtenerParametro('barrio'),
+                obtenerParametro('ciudad'),
+                obtenerParametro('departamento'),
+                obtenerParametro('provincia')
+            ].filter(p => p && !p.includes("[No especificado]")).join(', ');
+
+            const datosPersonalesHTML = `
+                <p class="no-break">A continuación se detallan sus circunstancias personales: Nombre Completo: ${nombreCompleto}, Nacionalidad: ${obtenerParametro('nacionalidad')}, Lugar de Nacimiento: ${obtenerParametro('lugar_nacimiento')}, Fecha de Nacimiento: ${obtenerParametro('fecha_nacimiento')}, Estado Civil: ${obtenerParametro('estado_civil')}, Profesión: ${obtenerParametro('profesion')}, Nivel de Alfabetización: ${obtenerParametro('nivel_alfabetizacion')}, Dirección: ${direccionCompleta}, Teléfono de Contacto: ${obtenerParametro('telefono_contacto')}, Email de Contacto: ${obtenerParametro('email_contacto')}.</p>
+            `;
+
+            let descripcionDispositivo = "un dispositivo no especificado.";
+            const tipoDispositivo = params.get('dispositivo');
+
+            switch(tipoDispositivo) {
+                case 'telefono':
+                    const imeiInfo = params.get('dual') === 'si' 
+                        ? `IMEI 1: ${obtenerParametro('imei1')}, IMEI 2: ${obtenerParametro('imei2')}`
+                        : `IMEI: ${obtenerParametro('imei1')}`;
+                    descripcionDispositivo = `un <strong>Teléfono Celular</strong> marca <strong>${obtenerParametro('marca_tel')}</strong>, modelo <strong>${obtenerParametro('modelo_tel')}</strong>, color <strong>${obtenerParametro('color_tel')}</strong>, con número de serie <strong>${obtenerParametro('serie_tel')}</strong> y ${imeiInfo}. Observaciones: ${obtenerParametro('obs_tel')}.`;
+                    break;
+                case 'usb':
+                    descripcionDispositivo = `un <strong>Disco Extraíble USB</strong> marca <strong>${obtenerParametro('marca_usb')}</strong>, con capacidad de <strong>${obtenerParametro('capacidad_usb')}</strong> y número de serie <strong>${obtenerParametro('serie_usb')}</strong>. Observaciones: ${obtenerParametro('obs_usb')}.`;
+                    break;
+                case 'optico':
+                    descripcionDispositivo = `un <strong>Soporte Óptico</strong> de tipo <strong>${obtenerParametro('tipo_optico')}</strong> y capacidad de <strong>${obtenerParametro('capacidad_optico')}</strong>. Observaciones: ${obtenerParametro('obs_optico')}.`;
+                    break;
+                case 'nube':
+                    descripcionDispositivo = `información desde un <strong>Almacenamiento en la Nube</strong> ubicado en <strong>${obtenerParametro('url_nube')}</strong>, asociado al correo <strong>${obtenerParametro('correo_nube')}</strong>. Observaciones: ${obtenerParametro('obs_nube')}.`;
+                    break;
+            }
+            
+            const hashComprimido = params.get("hash_comprimido");
+            const nombreZip = params.get("nombre_zip");
+            let textoAdicional = "";
+            if (hashComprimido && nombreZip) {
+                textoAdicional = `<p class="no-break">Se procede a crear un archivo comprimido llamado <strong>${nombreZip}</strong>, con la información aportada, realizando el cálculo HASH SHA-256 cuyo resultado es: <strong>${hashComprimido}</strong>.</p>`;
+                document.getElementById('downloadButton').style.display = 'block';
+            }
+            
+            const fechaActa = new Date(obtenerParametro('fecha') + 'T' + obtenerParametro('hora'));
+            const dia = fechaActa.getDate();
+            const mes = fechaActa.toLocaleString('es-ES', { month: 'long' });
+            const anio = fechaActa.getFullYear();
+            const hora = fechaActa.toLocaleTimeString('es-ES', {hour: '2-digit', minute:'2-digit'});
+            
+            const fiscaliaTexto = params.get('fiscalia') === 'Otros' ? obtenerParametro('fiscalia_otro') : obtenerParametro('fiscalia');
+
+            const contenidoFinalHTML = `
+                <p class="no-break"><strong>ACTA DE APORTE:</strong> En el Departamento de San Carlos, Provincia de Mendoza, República Argentina, a los <strong class="no-break">${dia}</strong> días del mes de <strong class="no-break">${mes}</strong> del año <strong class="no-break">${anio}</strong>, siendo las <strong class="no-break">${hora}</strong> hs, el Funcionario de Policía que suscribe <strong class="no-break">${obtenerParametro("perito")}</strong> y Secretario que a los efectos legales se designa, dejan expresa constancia de lo siguiente: Siendo la hora y fecha antes indicada se hace presente en esta Sección Delitos Tecnológicos Valle de Uco una persona quien dice llamarse <strong class="no-break">${nombreCompleto}</strong>. ${datosPersonalesHTML} La persona mencionada, en el marco del Expte. <strong class="no-break">${obtenerParametro("expediente_completo")}</strong> de <strong class="no-break">${fiscaliaTexto}</strong>, aporta ${descripcionDispositivo} A posterior y según lo indicado por el aportante se procede a realizar la siguiente tarea: <strong class="no-break">${obtenerParametro("tarea")}</strong>. ${textoAdicional} La información es transferida desde el dispositivo mediante <strong class="no-break">${obtenerParametro("enviar")}</strong>, quedando alojada en el computador del suscripto hasta su resguardo definitivo. No siendo para más, se da por finalizada la presente, la que es leída y ratificada, firmada al pie de conformidad por los intervinientes y por los funcionarios de Policía que suscriben y CERTIFICAN.</p>
+            `;
+
+            document.getElementById('contenido-acta').innerHTML = contenidoFinalHTML;
+            
+            await loadAndSetupPermanentSignatures();
+            document.getElementById('datosModal').style.display = 'none';
+            document.getElementById('requireSignatureButton').addEventListener('click', requireSignature);
+            document.getElementById('saveDatosButton').addEventListener('click', applySignatureAndData);
+            document.getElementById('actuante-select').addEventListener('change', (e) => updatePermanentSignature('actuante', e.target.value));
+            document.getElementById('secretario-select').addEventListener('change', (e) => updatePermanentSignature('secretario', e.target.value));
+            
+            // Verificar automáticamente si ya hay una firma disponible
+            await verificarFirmaDisponible();
+        };
+        
+        // --- FUNCIÓN CORREGIDA PARA PRESERVAR PROVINCIA/DEPARTAMENTO/LOCALIDAD ---
+        function modificarActa() {
+            // Crear un objeto con todos los parámetros actuales
+            const parametrosActuales = {};
+            for (const [key, value] of params.entries()) {
+                parametrosActuales[key] = value;
+            }
+            
+            // Añadir bandera de modificación
+            parametrosActuales.modificando = 'true';
+            
+            // Crear nueva URL con todos los parámetros
+            const nuevaURL = new URLSearchParams(parametrosActuales);
+            window.location.href = `/formularioacta.html?${nuevaURL.toString()}`;
+        };
+        
+        // --- FUNCIÓN PARA COPIAR ENLACE AL PORTAPAPELES ---
+        function copyToClipboard(text) {
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Mostrar mensaje de éxito
+                    const button = event.target;
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '✅ Copiado!';
+                    button.style.background = '#28a745';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.background = '#007bff';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Error al copiar:', err);
+                    fallbackCopyToClipboard(text);
+                });
+            } else {
+                fallbackCopyToClipboard(text);
+            }
+        }
+        
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                document.execCommand('copy');
+                const button = event.target;
+                const originalText = button.innerHTML;
+                button.innerHTML = '✅ Copiado!';
+                button.style.background = '#28a745';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.background = '#007bff';
+                }, 2000);
+            } catch (err) {
+                console.error('Error al copiar:', err);
+                alert('Error al copiar el enlace. Por favor, cópielo manualmente.');
+            }
+            
+            document.body.removeChild(textArea);
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Firmar Documento</title>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background-color: #f0f0f0; }
+        .container { background-color: white; padding: 20px; border-radius: 10px; box-shadow: 0 0 15px rgba(0,0,0,0.2); width: 95%; max-width: 500px; text-align: center; }
+        h2 { margin-top: 0; }
+        #signaturePad { border: 2px solid #ccc; border-radius: 5px; cursor: crosshair; width: 100%; height: 250px; }
+        /* Estilos consistentes para todos los botones */
+        button { 
+            width: 100%; 
+            padding: 14px 20px; 
+            font-size: 16px; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer; 
+            color: white; 
+            margin-top: 10px; 
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        button:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2); 
+        }
+        button:active { 
+            transform: translateY(0); 
+        }
+        #sendSignature { background: linear-gradient(135deg, #28a745, #1e7e34); }
+        #clearSignature { background: linear-gradient(135deg, #ffc107, #e0a800); color: #212529; }
+        #message { margin-top: 15px; font-weight: bold; height: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Firme en el recuadro</h2>
+        <canvas id="signaturePad"></canvas>
+        <button id="sendSignature">Enviar Firma</button>
+        <button id="clearSignature">Limpiar</button>
+        <div id="message"></div>
+    </div>
+    <script>
+        const canvas = document.getElementById('signaturePad');
+        
+        // --- CAMBIO CLAVE: AÑADIMOS 'penColor: 'blue'' ---
+        const signaturePad = new SignaturePad(canvas, { 
+            backgroundColor: 'rgb(255, 255, 255)',
+            penColor: 'blue' 
+        });
+
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext("2d").scale(ratio, ratio);
+            signaturePad.clear();
+        }
+        window.addEventListener("resize", resizeCanvas);
+        resizeCanvas();
+
+        document.getElementById('clearSignature').addEventListener('click', () => signaturePad.clear());
+
+        document.getElementById('sendSignature').addEventListener('click', async () => {
+            if (signaturePad.isEmpty()) return alert("La firma no puede estar vacía.");
+            
+            const sessionId = new URLSearchParams(window.location.search).get('session');
+            const data = { sessionId, signature: signaturePad.toDataURL('image/png') };
+            
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = 'Enviando...';
+
+            try {
+                const response = await fetch('/api/submit-signature', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(data)
+                });
+                if (response.ok) {
+                    messageDiv.textContent = '¡Éxito!';
+                    setTimeout(() => { window.location.href = '/sala-de-espera.html'; }, 1000);
+                } else { throw new Error('Error del servidor.'); }
+            } catch (error) {
+                messageDiv.textContent = 'Error al enviar.';
+            }
+        });
+    </script>
+</body>
+</html>
