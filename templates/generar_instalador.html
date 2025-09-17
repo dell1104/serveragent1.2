@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Instalador - Sistema Forense</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .generator-card {
+            transition: transform 0.3s ease;
+        }
+        .generator-card:hover {
+            transform: translateY(-5px);
+        }
+        .progress-container {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <div class="card generator-card">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-download me-2"></i>
+                            Generar Instalador de Agente
+                        </h4>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Instalador Personalizado:</strong> Este instalador estará configurado específicamente para tu usuario y se conectará automáticamente al servidor.
+                        </div>
+                        
+                        <div class="mb-4">
+                            <h5>Información del Instalador</h5>
+                            <ul class="list-unstyled">
+                                <li><i class="fas fa-user me-2"></i><strong>Usuario:</strong> <span id="user-info">Cargando...</span></li>
+                                <li><i class="fas fa-server me-2"></i><strong>Servidor:</strong> <span id="server-info">{{ request.host_url }}</span></li>
+                                <li><i class="fas fa-shield-alt me-2"></i><strong>Seguridad:</strong> Token único de registro</li>
+                                <li><i class="fas fa-cog me-2"></i><strong>Configuración:</strong> Inicio automático con Windows</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="progress-container mb-4">
+                            <div class="progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                            </div>
+                            <small class="text-muted">Generando instalador personalizado...</small>
+                        </div>
+                        
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success btn-lg" id="generate-installer">
+                                <i class="fas fa-magic me-2"></i>
+                                Generar Instalador Personalizado
+                            </button>
+                            <button class="btn btn-outline-secondary" id="view-tokens" style="display: none;">
+                                <i class="fas fa-key me-2"></i>
+                                Ver Tokens Generados
+                            </button>
+                        </div>
+                        
+                        <div class="mt-4" id="download-section" style="display: none;">
+                            <div class="alert alert-success">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>¡Instalador generado exitosamente!</strong>
+                                <p class="mb-0 mt-2">El archivo se descargará automáticamente. Si no se descarga, <a href="#" id="download-link">haz clic aquí</a>.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4" id="tokens-section" style="display: none;">
+                            <h5>Tokens Generados</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Token</th>
+                                            <th>Usuario</th>
+                                            <th>Fecha</th>
+                                            <th>Estado</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="tokens-table">
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="card mt-4">
+                    <div class="card-header">
+                        <h5><i class="fas fa-question-circle me-2"></i>Instrucciones de Uso</h5>
+                    </div>
+                    <div class="card-body">
+                        <ol>
+                            <li><strong>Descargar:</strong> Haz clic en "Generar Instalador Personalizado"</li>
+                            <li><strong>Extraer:</strong> Extrae el archivo ZIP descargado</li>
+                            <li><strong>Instalar:</strong> Ejecuta "Instalar_Agente.bat" como administrador</li>
+                            <li><strong>Configurar:</strong> El agente se configurará automáticamente</li>
+                            <li><strong>Usar:</strong> El agente se iniciará automáticamente con Windows</li>
+                        </ol>
+                        
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle me-2"></i>
+                            <strong>Importante:</strong> El instalador debe ejecutarse como administrador para configurar el inicio automático.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let downloadInProgress = false;
+        
+        // Cargar información del usuario
+        document.addEventListener('DOMContentLoaded', function() {
+            // Simular carga de información del usuario
+            document.getElementById('user-info').textContent = 'Usuario Actual';
+        });
+        
+        // Generar instalador
+        document.getElementById('generate-installer').addEventListener('click', async function() {
+            if (downloadInProgress) return;
+            
+            downloadInProgress = true;
+            const button = this;
+            const progressContainer = document.querySelector('.progress-container');
+            const progressBar = document.querySelector('.progress-bar');
+            
+            // Mostrar progreso
+            button.disabled = true;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generando...';
+            progressContainer.style.display = 'block';
+            
+            // Simular progreso
+            let progress = 0;
+            const progressInterval = setInterval(() => {
+                progress += 10;
+                progressBar.style.width = progress + '%';
+                if (progress >= 90) {
+                    clearInterval(progressInterval);
+                }
+            }, 200);
+            
+            try {
+                const response = await fetch('/api/installer-dynamic/generate/windows', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+                
+                if (response.ok) {
+                    // Ocultar progreso
+                    progressContainer.style.display = 'none';
+                    progressBar.style.width = '100%';
+                    
+                    // Descargar archivo
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'AgenteForense_Personalizado.zip';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    // Mostrar sección de descarga
+                    document.getElementById('download-section').style.display = 'block';
+                    document.getElementById('view-tokens').style.display = 'inline-block';
+                    
+                    // Actualizar botón
+                    button.innerHTML = '<i class="fas fa-check me-2"></i>Instalador Generado';
+                    button.classList.remove('btn-success');
+                    button.classList.add('btn-outline-success');
+                    
+                } else {
+                    throw new Error('Error generando instalador');
+                }
+                
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generando instalador: ' + error.message);
+                
+                // Restaurar botón
+                button.disabled = false;
+                button.innerHTML = '<i class="fas fa-magic me-2"></i>Generar Instalador Personalizado';
+                progressContainer.style.display = 'none';
+            }
+            
+            downloadInProgress = false;
+        });
+        
+        // Ver tokens
+        document.getElementById('view-tokens').addEventListener('click', async function() {
+            try {
+                const response = await fetch('/api/installer-dynamic/tokens');
+                const data = await response.json();
+                
+                const tbody = document.getElementById('tokens-table');
+                tbody.innerHTML = '';
+                
+                data.tokens.forEach(token => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td><code>${token.token.substring(0, 8)}...</code></td>
+                        <td>${token.user_id}</td>
+                        <td>${new Date(token.created_at).toLocaleString()}</td>
+                        <td><span class="badge ${token.used ? 'bg-danger' : 'bg-success'}">${token.used ? 'Usado' : 'Disponible'}</span></td>
+                    `;
+                    tbody.appendChild(row);
+                });
+                
+                document.getElementById('tokens-section').style.display = 'block';
+                
+            } catch (error) {
+                console.error('Error cargando tokens:', error);
+                alert('Error cargando tokens: ' + error.message);
+            }
+        });
+    </script>
+</body>
+</html>

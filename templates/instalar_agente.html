@@ -545,9 +545,13 @@
                     throw new Error(`No hay instalador disponible para ${selectedOS} ${selectedArch}`);
                 }
 
-                // Descargar instalador
-                const downloadUrl = `/api/installer-web/download/${recommendedInstaller.filename}`;
-                const response = await fetch(downloadUrl);
+                // Generar instalador BAT ultra amigable (no requiere NSIS)
+                const response = await fetch('/api/installer-bat-amigable/generate/windows', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
                 
                 if (response.ok) {
                     const blob = await response.blob();
@@ -556,7 +560,7 @@
                     // Crear enlace de descarga
                     const a = document.createElement('a');
                     a.href = url;
-                    a.download = recommendedInstaller.filename;
+                    a.download = `AgenteForense_${selectedOS}_${selectedArch}.zip`;
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);

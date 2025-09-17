@@ -1,0 +1,293 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Instalador Agente Forense{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="card-title">
+                        <i class="fas fa-download"></i>
+                        Instalador Agente Forense
+                    </h3>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Instrucciones:</strong> Selecciona tu sistema operativo para descargar el instalador correspondiente.
+                    </div>
+
+                    <!-- Detección automática del OS -->
+                    <div id="os-detection" class="text-center mb-4">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="sr-only">Detectando sistema operativo...</span>
+                        </div>
+                        <p class="mt-2">Detectando tu sistema operativo...</p>
+                    </div>
+
+                    <!-- Instalador para Windows -->
+                    <div id="windows-installer" class="installer-section" style="display: none;">
+                        <div class="card border-primary">
+                            <div class="card-header bg-primary text-white">
+                                <h4 class="mb-0">
+                                    <i class="fab fa-windows"></i>
+                                    Windows
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <p>Instalador para sistemas Windows (7, 8, 10, 11)</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Instalador Automático (.BAT)</h5>
+                                        <p class="text-muted">Instalador simple que configura todo automáticamente</p>
+                                        <button class="btn btn-primary btn-lg" onclick="descargarInstalador('windows', 'bat')">
+                                            <i class="fas fa-download"></i>
+                                            Descargar Instalador BAT
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Instalador Avanzado (.ZIP)</h5>
+                                        <p class="text-muted">Paquete completo con opciones avanzadas</p>
+                                        <button class="btn btn-outline-primary btn-lg" onclick="descargarInstalador('windows', 'zip')">
+                                            <i class="fas fa-download"></i>
+                                            Descargar Instalador ZIP
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instalador para Linux -->
+                    <div id="linux-installer" class="installer-section" style="display: none;">
+                        <div class="card border-success">
+                            <div class="card-header bg-success text-white">
+                                <h4 class="mb-0">
+                                    <i class="fab fa-linux"></i>
+                                    Linux
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <p>Instalador para sistemas Linux (Ubuntu, Debian, CentOS, etc.)</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Instalador Shell (.SH)</h5>
+                                        <p class="text-muted">Script de instalación para terminal</p>
+                                        <button class="btn btn-success btn-lg" onclick="descargarInstalador('linux', 'sh')">
+                                            <i class="fas fa-download"></i>
+                                            Descargar Instalador SH
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Paquete DEB</h5>
+                                        <p class="text-muted">Paquete para sistemas basados en Debian</p>
+                                        <button class="btn btn-outline-success btn-lg" onclick="descargarInstalador('linux', 'deb')">
+                                            <i class="fas fa-download"></i>
+                                            Descargar Paquete DEB
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instalador para macOS -->
+                    <div id="macos-installer" class="installer-section" style="display: none;">
+                        <div class="card border-secondary">
+                            <div class="card-header bg-secondary text-white">
+                                <h4 class="mb-0">
+                                    <i class="fab fa-apple"></i>
+                                    macOS
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <p>Instalador para sistemas macOS</p>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <h5>Instalador Shell (.SH)</h5>
+                                        <p class="text-muted">Script de instalación para terminal</p>
+                                        <button class="btn btn-secondary btn-lg" onclick="descargarInstalador('macos', 'sh')">
+                                            <i class="fas fa-download"></i>
+                                            Descargar Instalador SH
+                                        </button>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <h5>Paquete DMG</h5>
+                                        <p class="text-muted">Imagen de disco para macOS</p>
+                                        <button class="btn btn-outline-secondary btn-lg" onclick="descargarInstalador('macos', 'dmg')">
+                                            <i class="fas fa-download"></i>
+                                            Descargar Paquete DMG
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instalador Manual (si no se detecta OS) -->
+                    <div id="manual-installer" class="installer-section" style="display: none;">
+                        <div class="card border-warning">
+                            <div class="card-header bg-warning text-dark">
+                                <h4 class="mb-0">
+                                    <i class="fas fa-question-circle"></i>
+                                    Selección Manual
+                                </h4>
+                            </div>
+                            <div class="card-body">
+                                <p>No se pudo detectar tu sistema operativo. Selecciona manualmente:</p>
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <button class="btn btn-primary btn-block" onclick="mostrarInstalador('windows')">
+                                            <i class="fab fa-windows"></i>
+                                            Windows
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-success btn-block" onclick="mostrarInstalador('linux')">
+                                            <i class="fab fa-linux"></i>
+                                            Linux
+                                        </button>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button class="btn btn-secondary btn-block" onclick="mostrarInstalador('macos')">
+                                            <i class="fab fa-apple"></i>
+                                            macOS
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Información del usuario -->
+                    <div class="mt-4">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5><i class="fas fa-info"></i> Información del Agente</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <strong>Usuario:</strong> {{ current_user.username }}<br>
+                                        <strong>ID:</strong> {{ current_user.id }}<br>
+                                        <strong>Servidor:</strong> {{ request.host_url }}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <strong>Token de Registro:</strong> <code id="token-display">Generando...</code><br>
+                                        <button class="btn btn-sm btn-outline-primary" onclick="generarNuevoToken()">
+                                            <i class="fas fa-sync"></i> Generar Nuevo Token
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+let currentToken = '';
+
+// Detectar sistema operativo
+function detectarOS() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    const platform = navigator.platform.toLowerCase();
+    
+    // Ocultar detección
+    document.getElementById('os-detection').style.display = 'none';
+    
+    if (userAgent.includes('windows') || platform.includes('win')) {
+        mostrarInstalador('windows');
+    } else if (userAgent.includes('linux') || platform.includes('linux')) {
+        mostrarInstalador('linux');
+    } else if (userAgent.includes('mac') || platform.includes('mac')) {
+        mostrarInstalador('macos');
+    } else {
+        mostrarInstalador('manual');
+    }
+}
+
+// Mostrar instalador específico
+function mostrarInstalador(os) {
+    // Ocultar todos los instaladores
+    document.querySelectorAll('.installer-section').forEach(el => {
+        el.style.display = 'none';
+    });
+    
+    // Mostrar el instalador correspondiente
+    if (os === 'manual') {
+        document.getElementById('manual-installer').style.display = 'block';
+    } else {
+        document.getElementById(os + '-installer').style.display = 'block';
+    }
+}
+
+// Descargar instalador
+function descargarInstalador(os, tipo) {
+    if (!currentToken) {
+        alert('Error: No se ha generado el token de registro');
+        return;
+    }
+    
+    const url = `/api/installer-web/download/${os}/${tipo}?token=${currentToken}&user_id={{ current_user.id }}`;
+    window.location.href = url;
+}
+
+// Generar nuevo token
+function generarNuevoToken() {
+    fetch('/api/installer-web/generate-token', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            currentToken = data.token;
+            document.getElementById('token-display').textContent = currentToken;
+        } else {
+            alert('Error generando token: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error generando token');
+    });
+}
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', function() {
+    // Generar token inicial
+    generarNuevoToken();
+    
+    // Detectar OS después de un breve delay
+    setTimeout(detectarOS, 1000);
+});
+</script>
+
+<style>
+.installer-section {
+    margin-bottom: 20px;
+}
+
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    border: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.btn {
+    margin: 5px;
+}
+
+#os-detection {
+    padding: 40px;
+}
+</style>
+{% endblock %}

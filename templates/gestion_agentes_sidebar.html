@@ -1,0 +1,152 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Mis Agentes - Sistema Forense{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users-cog me-2"></i>Mis Agentes Forenses
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-3">
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-success me-2" id="totalAgentes">0</span>
+                            <span>Total de Agentes</span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="d-flex align-items-center">
+                            <span class="badge bg-primary me-2" id="agentesOnline">0</span>
+                            <span>Agentes Conectados</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Lista de agentes -->
+                <div id="agentesList">
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Cargando agentes...</span>
+                        </div>
+                        <p class="mt-2">Cargando agentes del sistema...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<script>
+    let agentes = [];
+
+    // Cargar agentes al inicializar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarAgentes();
+    });
+
+    async function cargarAgentes() {
+        try {
+            const response = await fetch('/api/agentes');
+            const data = await response.json();
+            
+            if (data.success) {
+                agentes = data.agentes;
+                mostrarAgentes(agentes);
+            } else {
+                mostrarAlerta('Error cargando agentes: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            console.error('Error cargando agentes:', error);
+            mostrarAlerta('Error de conexión al cargar agentes', 'danger');
+        }
+    }
+
+    function mostrarAgentes(agentes) {
+        const agentesList = document.getElementById('agentesList');
+        
+        if (agentes.length === 0) {
+            agentesList.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay agentes registrados</h5>
+                    <p class="text-muted">Instale un agente para comenzar a trabajar</p>
+                    <a href="{{ url_for('instalar_agente') }}" class="btn btn-primary">
+                        <i class="fas fa-download me-2"></i>Instalar Agente
+                    </a>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="row">';
+        
+        agentes.forEach(agente => {
+            const statusClass = agente.status === 'online' ? 'success' : 'secondary';
+            const statusIcon = agente.status === 'online' ? 'fa-check-circle' : 'fa-times-circle';
+            
+            html += `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title">${agente.name || 'Agente Forense'}</h6>
+                                <span class="badge bg-${statusClass}">
+                                    <i class="fas ${statusIcon} me-1"></i>${agente.status || 'Desconocido'}
+                                </span>
+                            </div>
+                            <p class="card-text small text-muted">
+                                <strong>ID:</strong> ${agente.id || 'N/A'}<br>
+                                <strong>Plataforma:</strong> ${agente.platform || 'N/A'}<br>
+                                <strong>Última conexión:</strong> ${agente.last_seen ? new Date(agente.last_seen).toLocaleString() : 'Nunca'}
+                            </p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="verDiscos('${agente.id}')">
+                                    <i class="fas fa-hdd me-1"></i>Ver Discos
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" onclick="verDetalles('${agente.id}')">
+                                    <i class="fas fa-info me-1"></i>Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        agentesList.innerHTML = html;
+        
+        // Actualizar contadores
+        document.getElementById('totalAgentes').textContent = agentes.length;
+        document.getElementById('agentesOnline').textContent = agentes.filter(a => a.status === 'online').length;
+    }
+
+    function verDiscos(agentId) {
+        // Implementar funcionalidad para ver discos del agente
+        alert('Funcionalidad de ver discos en desarrollo para agente: ' + agentId);
+    }
+
+    function verDetalles(agentId) {
+        // Implementar funcionalidad para ver detalles del agente
+        alert('Funcionalidad de detalles en desarrollo para agente: ' + agentId);
+    }
+
+    function mostrarAlerta(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+    }
+</script>
+{% endblock %}

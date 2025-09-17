@@ -1,0 +1,548 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Gestión de Agentes - Sistema Forense{% endblock %}
+
+{% block content %}
+<!-- Alertas -->
+<div id="alertas"></div>
+
+<!-- Estadísticas rápidas -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-primary" id="totalAgentes">0</h5>
+                <p class="card-text">Total Agentes</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-success" id="agentesOnline">0</h5>
+                <p class="card-text">Online</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-warning" id="operacionesActivas">0</h5>
+                <p class="card-text">Operaciones Activas</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="card-title text-info" id="discosDisponibles">0</h5>
+                <p class="card-text">Discos Disponibles</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Botones de acción -->
+<div class="row mb-4">
+    <div class="col-12">
+        <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-outline-secondary" onclick="actualizarAgentes()">
+                <i class="fas fa-sync-alt me-1"></i>Actualizar
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalRegistrarAgente">
+                <i class="fas fa-plus me-1"></i>Registrar Agente
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Lista de agentes -->
+<div class="row" id="listaAgentes">
+    <!-- Los agentes se cargarán aquí dinámicamente -->
+</div>
+
+<!-- Operaciones activas -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="mb-0"><i class="fas fa-tasks me-2"></i>Operaciones Activas</h5>
+    </div>
+    <div class="card-body">
+        <div id="operacionesActivas">
+            <!-- Las operaciones se cargarán aquí dinámicamente -->
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<!-- Modal para registrar agente -->
+<div class="modal fade" id="modalRegistrarAgente" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrar Nuevo Agente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formRegistrarAgente">
+                    <div class="mb-3">
+                        <label for="agenteId" class="form-label">ID del Agente</label>
+                        <input type="text" class="form-control" id="agenteId" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="agenteNombre" class="form-label">Nombre</label>
+                        <input type="text" class="form-control" id="agenteNombre" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="agenteIp" class="form-label">IP del Agente</label>
+                        <input type="text" class="form-control" id="agenteIp" placeholder="192.168.1.100" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="agentePuerto" class="form-label">Puerto</label>
+                        <input type="number" class="form-control" id="agentePuerto" value="5001" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="agenteApiKey" class="form-label">API Key</label>
+                        <input type="text" class="form-control" id="agenteApiKey" value="forensic_agent_2024" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="agenteUbicacion" class="form-label">Ubicación</label>
+                        <input type="text" class="form-control" id="agenteUbicacion" placeholder="Oficina Central">
+                    </div>
+                    <div class="mb-3">
+                        <label for="agenteCapabilities" class="form-label">Formatos Soportados</label>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="DD" id="capDD" checked>
+                            <label class="form-check-label" for="capDD">DD (Raw)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="E01" id="capE01" checked>
+                            <label class="form-check-label" for="capE01">E01 (EnCase)</label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" value="AFF4" id="capAFF4" checked>
+                            <label class="form-check-label" for="capAFF4">AFF4</label>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="registrarAgente()">Registrar</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para adquisición -->
+<div class="modal fade" id="modalAdquisicion" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Iniciar Adquisición Forense</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formAdquisicion">
+                    <div class="mb-3">
+                        <label for="agenteSeleccionado" class="form-label">Agente</label>
+                        <select class="form-control" id="agenteSeleccionado" required>
+                            <option value="">Seleccionar agente...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="dispositivoSeleccionado" class="form-label">Dispositivo</label>
+                        <select class="form-control" id="dispositivoSeleccionado" required>
+                            <option value="">Seleccionar dispositivo...</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="formatoSeleccionado" class="form-label">Formato</label>
+                        <select class="form-control" id="formatoSeleccionado" required>
+                            <option value="">Seleccionar formato...</option>
+                            <option value="DD">DD (Raw)</option>
+                            <option value="E01">E01 (EnCase)</option>
+                            <option value="AFF4">AFF4</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="nombreArchivo" class="form-label">Nombre del Archivo</label>
+                        <input type="text" class="form-control" id="nombreArchivo" placeholder="evidencia_caso_001" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="idCaso" class="form-label">ID del Caso</label>
+                        <input type="text" class="form-control" id="idCaso" placeholder="C-2024-001" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="iniciarAdquisicion()">Iniciar Adquisición</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .status-online {
+        color: #28a745;
+    }
+    .status-offline {
+        color: #dc3545;
+    }
+    .status-busy {
+        color: #ffc107;
+    }
+    .agent-card {
+        transition: transform 0.2s;
+    }
+    .agent-card:hover {
+        transform: translateY(-2px);
+    }
+    .progress-bar {
+        height: 8px;
+        border-radius: 4px;
+    }
+</style>
+
+<script>
+    let agentes = [];
+    let operaciones = [];
+    
+    // Cargar datos al iniciar
+    document.addEventListener('DOMContentLoaded', function() {
+        cargarAgentes();
+        cargarOperaciones();
+        
+        // Actualizar cada 30 segundos
+        setInterval(() => {
+            cargarAgentes();
+            cargarOperaciones();
+        }, 30000);
+    });
+    
+    async function cargarAgentes() {
+        try {
+            const response = await fetch('/api/agentes');
+            const data = await response.json();
+            
+            if (data.success) {
+                agentes = data.agentes;
+                mostrarAgentes();
+                actualizarEstadisticas();
+            } else {
+                mostrarAlerta('Error cargando agentes: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+        }
+    }
+    
+    async function cargarOperaciones() {
+        try {
+            const response = await fetch('/api/operaciones');
+            const data = await response.json();
+            
+            if (data.success) {
+                operaciones = data.operaciones;
+                mostrarOperaciones();
+            }
+        } catch (error) {
+            console.error('Error cargando operaciones:', error);
+        }
+    }
+    
+    function mostrarAgentes() {
+        const container = document.getElementById('listaAgentes');
+        container.innerHTML = '';
+        
+        if (agentes.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="text-center py-4">
+                        <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No hay agentes registrados</h5>
+                        <p class="text-muted">Registre un agente para comenzar a trabajar</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+        
+        agentes.forEach(agente => {
+            const statusClass = agente.status === 'online' ? 'status-online' : 'status-offline';
+            const statusIcon = agente.status === 'online' ? 'fa-circle' : 'fa-circle';
+            
+            const card = document.createElement('div');
+            card.className = 'col-md-6 col-lg-4 mb-3';
+            card.innerHTML = `
+                <div class="card agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="card-title">${agente.name || 'Agente Forense'}</h6>
+                            <span class="${statusClass}">
+                                <i class="fas ${statusIcon}"></i>
+                            </span>
+                        </div>
+                        <p class="card-text small text-muted">
+                            <i class="fas fa-map-marker-alt me-1"></i>${agente.location || 'Ubicación no especificada'}<br>
+                            <i class="fas fa-desktop me-1"></i>${agente.os || 'Sistema no especificado'}<br>
+                            <i class="fas fa-network-wired me-1"></i>${agente.ip || 'IP no especificada'}:${agente.port || '5001'}
+                        </p>
+                        <div class="mb-2">
+                            <small class="text-muted">Formatos soportados:</small><br>
+                            ${(agente.capabilities || []).map(cap => `<span class="badge bg-secondary me-1">${cap}</span>`).join('')}
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-sm btn-outline-primary" onclick="verDiscos('${agente.id}')">
+                                <i class="fas fa-hdd me-1"></i>Discos
+                            </button>
+                            <button class="btn btn-sm btn-primary" onclick="iniciarAdquisicionModal('${agente.id}')">
+                                <i class="fas fa-play me-1"></i>Adquirir
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        });
+    }
+    
+    function mostrarOperaciones() {
+        const container = document.getElementById('operacionesActivas');
+        
+        if (operaciones.length === 0) {
+            container.innerHTML = '<p class="text-muted">No hay operaciones activas</p>';
+            return;
+        }
+        
+        container.innerHTML = operaciones.map(op => `
+            <div class="d-flex justify-content-between align-items-center p-2 border rounded mb-2">
+                <div>
+                    <strong>${op.agent_name}</strong> - ${op.device_id}<br>
+                    <small class="text-muted">${op.format} | ${op.output_name} | ${op.case_id}</small>
+                </div>
+                <div class="text-end">
+                    <div class="progress mb-1" style="width: 100px;">
+                        <div class="progress-bar" style="width: ${op.progress}%"></div>
+                    </div>
+                    <small class="text-muted">${op.progress}%</small>
+                    <br>
+                    <button class="btn btn-sm btn-outline-danger" onclick="cancelarOperacion('${op.operation_id}')">
+                        <i class="fas fa-stop"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+    }
+    
+    function actualizarEstadisticas() {
+        document.getElementById('totalAgentes').textContent = agentes.length;
+        document.getElementById('agentesOnline').textContent = agentes.filter(a => a.status === 'online').length;
+        document.getElementById('operacionesActivas').textContent = operaciones.filter(o => o.status === 'in_progress').length;
+        
+        // Contar discos disponibles (simulado)
+        let totalDiscos = 0;
+        agentes.forEach(agente => {
+            if (agente.status === 'online') {
+                totalDiscos += 5; // Simulado
+            }
+        });
+        document.getElementById('discosDisponibles').textContent = totalDiscos;
+    }
+    
+    async function verDiscos(agentId) {
+        try {
+            const response = await fetch(`/api/agentes/${agentId}/discos`);
+            const data = await response.json();
+            
+            if (data.success) {
+                let mensaje = `Discos disponibles en ${agentes.find(a => a.id === agentId)?.name}:\n\n`;
+                data.disks.forEach(disk => {
+                    mensaje += `• ${disk.model} (${disk.size}) - ${disk.device_id}\n`;
+                });
+                alert(mensaje);
+            } else {
+                mostrarAlerta('Error obteniendo discos: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+        }
+    }
+    
+    function iniciarAdquisicionModal(agentId) {
+        // Llenar select de agentes
+        const select = document.getElementById('agenteSeleccionado');
+        select.innerHTML = '<option value="">Seleccionar agente...</option>';
+        agentes.forEach(agente => {
+            const option = document.createElement('option');
+            option.value = agente.id;
+            option.textContent = agente.name;
+            if (agente.id === agentId) {
+                option.selected = true;
+            }
+            select.appendChild(option);
+        });
+        
+        // Cargar discos del agente seleccionado
+        cargarDiscosAgente(agentId);
+        
+        // Mostrar modal
+        new bootstrap.Modal(document.getElementById('modalAdquisicion')).show();
+    }
+    
+    async function cargarDiscosAgente(agentId) {
+        try {
+            const response = await fetch(`/api/agentes/${agentId}/discos`);
+            const data = await response.json();
+            
+            const select = document.getElementById('dispositivoSeleccionado');
+            select.innerHTML = '<option value="">Seleccionar dispositivo...</option>';
+            
+            if (data.success) {
+                data.disks.forEach(disk => {
+                    const option = document.createElement('option');
+                    option.value = disk.device_id;
+                    option.textContent = `${disk.model} (${disk.size}) - ${disk.device_id}`;
+                    select.appendChild(option);
+                });
+            }
+        } catch (error) {
+            console.error('Error cargando discos:', error);
+        }
+    }
+    
+    async function iniciarAdquisicion() {
+        const agentId = document.getElementById('agenteSeleccionado').value;
+        const deviceId = document.getElementById('dispositivoSeleccionado').value;
+        const format = document.getElementById('formatoSeleccionado').value;
+        const outputName = document.getElementById('nombreArchivo').value;
+        const caseId = document.getElementById('idCaso').value;
+        
+        if (!agentId || !deviceId || !format || !outputName || !caseId) {
+            mostrarAlerta('Por favor, complete todos los campos', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/agentes/${agentId}/adquirir`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    device_id: deviceId,
+                    format: format,
+                    output_name: outputName,
+                    case_id: caseId
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                mostrarAlerta('Adquisición iniciada correctamente', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modalAdquisicion')).hide();
+                cargarOperaciones();
+            } else {
+                mostrarAlerta('Error iniciando adquisición: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+        }
+    }
+    
+    async function cancelarOperacion(operationId) {
+        if (!confirm('¿Está seguro de que desea cancelar esta operación?')) {
+            return;
+        }
+        
+        try {
+            const operacion = operaciones.find(o => o.operation_id === operationId);
+            const response = await fetch(`/api/agentes/${operacion.agent_id}/operacion/${operationId}/cancelar`, {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                mostrarAlerta('Operación cancelada', 'info');
+                cargarOperaciones();
+            } else {
+                mostrarAlerta('Error cancelando operación: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+        }
+    }
+    
+    async function registrarAgente() {
+        const agentId = document.getElementById('agenteId').value;
+        const name = document.getElementById('agenteNombre').value;
+        const ip = document.getElementById('agenteIp').value;
+        const port = document.getElementById('agentePuerto').value;
+        const apiKey = document.getElementById('agenteApiKey').value;
+        const location = document.getElementById('agenteUbicacion').value;
+        
+        const capabilities = [];
+        if (document.getElementById('capDD').checked) capabilities.push('DD');
+        if (document.getElementById('capE01').checked) capabilities.push('E01');
+        if (document.getElementById('capAFF4').checked) capabilities.push('AFF4');
+        
+        if (!agentId || !name || !ip) {
+            mostrarAlerta('Por favor, complete los campos requeridos', 'warning');
+            return;
+        }
+        
+        try {
+            const response = await fetch(`/api/agentes/${agentId}/registrar`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    name: name,
+                    ip: ip,
+                    port: parseInt(port),
+                    api_key: apiKey,
+                    capabilities: capabilities,
+                    location: location,
+                    os: 'Windows'
+                })
+            });
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                mostrarAlerta('Agente registrado correctamente', 'success');
+                bootstrap.Modal.getInstance(document.getElementById('modalRegistrarAgente')).hide();
+                cargarAgentes();
+            } else {
+                mostrarAlerta('Error registrando agente: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            mostrarAlerta('Error de conexión: ' + error.message, 'danger');
+        }
+    }
+    
+    function actualizarAgentes() {
+        cargarAgentes();
+        cargarOperaciones();
+    }
+    
+    function mostrarAlerta(mensaje, tipo) {
+        const alertas = document.getElementById('alertas');
+        const alerta = document.createElement('div');
+        alerta.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alerta.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        alertas.appendChild(alerta);
+        
+        setTimeout(() => {
+            alerta.remove();
+        }, 5000);
+    }
+</script>
+{% endblock %}

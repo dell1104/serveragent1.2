@@ -1,0 +1,1030 @@
+{% extends "base_sidebar.html" %}
+
+{% block title %}Agentes Forenses - Sistema Forense{% endblock %}
+
+{% block content %}
+<!-- Pestañas para navegar entre funcionalidades -->
+<ul class="nav nav-tabs mb-4" id="agentesTabs" role="tablist">
+    <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="instalar-tab" data-bs-toggle="tab" data-bs-target="#instalar" type="button" role="tab">
+            <i class="fas fa-download me-2"></i>Instalar Agente
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="generar-tab" data-bs-toggle="tab" data-bs-target="#generar" type="button" role="tab">
+            <i class="fas fa-cogs me-2"></i>Generar Instalador
+        </button>
+    </li>
+    <li class="nav-item" role="presentation">
+        <button class="nav-link" id="gestionar-tab" data-bs-toggle="tab" data-bs-target="#gestionar" type="button" role="tab">
+            <i class="fas fa-users-cog me-2"></i>Mis Agentes
+        </button>
+    </li>
+</ul>
+
+<!-- Contenido de las pestañas -->
+<div class="tab-content" id="agentesTabsContent">
+    <!-- Pestaña: Instalar Agente -->
+    <div class="tab-pane fade show active" id="instalar" role="tabpanel">
+        <!-- Información del sistema -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-desktop me-2"></i>Información del Sistema
+                        </h5>
+                    </div>
+                    <div class="card-body" id="system-info">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Detectando sistema...</span>
+                            </div>
+                            <p class="mt-2">Detectando sistema operativo y capacidades...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-network-wired me-2"></i>Estado del Agente
+                        </h5>
+                    </div>
+                    <div class="card-body" id="agent-status">
+                        <div class="text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Verificando agente...</span>
+                            </div>
+                            <p class="mt-2">Verificando conexión con agente local...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Selección de sistema operativo -->
+        <div class="row mb-4" id="os-selection" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>Seleccionar Sistema Operativo
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-4 mb-3">
+                                <div class="card system-card" data-os="windows" data-arch="x64">
+                                    <div class="card-body text-center">
+                                        <i class="fab fa-windows fa-3x text-primary mb-3"></i>
+                                        <h5 class="card-title">Windows 64-bit</h5>
+                                        <p class="card-text">Windows 10/11 (64-bit)</p>
+                                        <div class="capability-badges">
+                                            <span class="badge bg-success capability-badge">DD</span>
+                                            <span class="badge bg-success capability-badge">E01</span>
+                                            <span class="badge bg-warning capability-badge">AFF4</span>
+                                            <span class="badge bg-success capability-badge">IMG</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card system-card" data-os="linux" data-arch="x64">
+                                    <div class="card-body text-center">
+                                        <i class="fab fa-linux fa-3x text-success mb-3"></i>
+                                        <h5 class="card-title">Linux 64-bit</h5>
+                                        <p class="card-text">Ubuntu, Debian, CentOS, etc.</p>
+                                        <div class="capability-badges">
+                                            <span class="badge bg-success capability-badge">DD</span>
+                                            <span class="badge bg-success capability-badge">E01</span>
+                                            <span class="badge bg-warning capability-badge">AFF4</span>
+                                            <span class="badge bg-success capability-badge">IMG</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <div class="card system-card" data-os="macos" data-arch="x64">
+                                    <div class="card-body text-center">
+                                        <i class="fab fa-apple fa-3x text-dark mb-3"></i>
+                                        <h5 class="card-title">macOS Intel</h5>
+                                        <p class="card-text">macOS 10.15+ (Intel)</p>
+                                        <div class="capability-badges">
+                                            <span class="badge bg-success capability-badge">DD</span>
+                                            <span class="badge bg-success capability-badge">E01</span>
+                                            <span class="badge bg-warning capability-badge">AFF4</span>
+                                            <span class="badge bg-success capability-badge">IMG</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progreso de instalación -->
+        <div class="row mb-4" id="installer-progress" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-download me-2"></i>Descargando Instalador
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" style="width: 0%" id="download-progress"></div>
+                        </div>
+                        <div class="text-center">
+                            <p id="download-status">Preparando descarga...</p>
+                            <button class="btn btn-secondary" id="cancel-download" style="display: none;">
+                                <i class="fas fa-times me-2"></i>Cancelar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instrucciones de instalación -->
+        <div class="row mb-4" id="installation-instructions" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-info-circle me-2"></i>Instrucciones de Instalación
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="instructions-content">
+                            <!-- Las instrucciones se cargarán dinámicamente -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de acción -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button class="btn btn-outline-secondary me-md-2" id="refresh-status">
+                        <i class="fas fa-sync-alt me-2"></i>Actualizar Estado
+                    </button>
+                    <button class="btn btn-primary" id="download-installer" disabled>
+                        <i class="fas fa-download me-2"></i>Descargar Instalador
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestaña: Generar Instalador -->
+    <div class="tab-pane fade" id="generar" role="tabpanel">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cogs me-2"></i>Generar Instalador Personalizado
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted mb-4">
+                            Genere un instalador personalizado para el agente forense con su configuración específica.
+                        </p>
+                        
+                        <form id="generarInstaladorForm">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="user_id" class="form-label">ID de Usuario</label>
+                                    <input type="text" class="form-control" id="user_id" name="user_id" 
+                                           value="{{ current_user.id }}" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="server_url" class="form-label">URL del Servidor</label>
+                                    <input type="text" class="form-control" id="server_url" name="server_url" 
+                                           value="{{ request.url_root.rstrip('/') }}" readonly>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="token" class="form-label">Token de Registro</label>
+                                    <input type="text" class="form-control" id="token" name="token" 
+                                           placeholder="Ingrese un token único" required>
+                                    <div class="form-text">Token único para el registro del agente</div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="tipo_instalador" class="form-label">Tipo de Instalador</label>
+                                    <select class="form-select" id="tipo_instalador" name="tipo_instalador">
+                                        <option value="bat">BAT (Recomendado)</option>
+                                        <option value="exe">EXE (Avanzado)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <strong>Información:</strong> El instalador generado incluirá automáticamente la configuración 
+                                        para conectarse a este servidor y registrarse con el token proporcionado.
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary" id="generarBtn">
+                                    <i class="fas fa-cogs me-2"></i>Generar Instalador
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary" onclick="generarToken()">
+                                    <i class="fas fa-key me-2"></i>Generar Token Aleatorio
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progreso de generación -->
+        <div class="row mt-4" id="progresoGeneracion" style="display: none;">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-cog fa-spin me-2"></i>Generando Instalador
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="progress mb-3">
+                            <div class="progress-bar" role="progressbar" style="width: 0%" id="progresoBarra"></div>
+                        </div>
+                        <div class="text-center">
+                            <p id="estadoGeneracion">Preparando generación...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pestaña: Mis Agentes -->
+    <div class="tab-pane fade" id="gestionar" role="tabpanel">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-users-cog me-2"></i>Mis Agentes Forenses
+                        </h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-success me-2" id="totalAgentes">0</span>
+                                    <span>Total de Agentes</span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="d-flex align-items-center">
+                                    <span class="badge bg-primary me-2" id="agentesOnline">0</span>
+                                    <span>Agentes Conectados</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Lista de agentes -->
+                        <div id="agentesList">
+                            <div class="text-center">
+                                <div class="spinner-border text-primary" role="status">
+                                    <span class="visually-hidden">Cargando agentes...</span>
+                                </div>
+                                <p class="mt-2">Cargando agentes del sistema...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts_extra %}
+<style>
+    .system-card {
+        transition: transform 0.3s ease;
+        cursor: pointer;
+    }
+    .system-card:hover {
+        transform: translateY(-5px);
+    }
+    .system-card.selected {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+    }
+    .installer-progress {
+        display: none;
+    }
+    .agent-status {
+        min-height: 200px;
+    }
+    .capability-badge {
+        font-size: 0.8em;
+    }
+    .nav-tabs .nav-link {
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+    .nav-tabs .nav-link.active {
+        background-color: #0d6efd;
+        color: white;
+        border-color: #0d6efd;
+    }
+    
+    /* Estilos para botones de pestañas */
+    .nav-tabs .nav-link {
+        color: #495057;
+        background-color: #f8f9fa;
+        border: 1px solid #dee2e6;
+    }
+    
+    .nav-tabs .nav-link:hover {
+        color: #0d6efd;
+        background-color: #e9ecef;
+        border-color: #dee2e6;
+    }
+    
+    /* Estilos para botones de acción */
+    .btn-primary {
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+        color: white !important;
+    }
+    
+    .btn-primary:hover {
+        background-color: #0b5ed7 !important;
+        border-color: #0a58ca !important;
+        color: white !important;
+    }
+    
+    .btn-outline-secondary {
+        color: #6c757d !important;
+        border-color: #6c757d !important;
+        background-color: transparent !important;
+    }
+    
+    .btn-outline-secondary:hover {
+        color: white !important;
+        background-color: #6c757d !important;
+        border-color: #6c757d !important;
+    }
+    
+    /* Asegurar que los botones sean visibles */
+    .btn {
+        display: inline-block !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+    
+    /* Estilos específicos para botones de pestañas */
+    #instalar-tab, #generar-tab, #gestionar-tab {
+        color: #495057 !important;
+        background-color: #f8f9fa !important;
+        border: 1px solid #dee2e6 !important;
+        padding: 0.5rem 1rem !important;
+        margin-right: 0.25rem !important;
+    }
+    
+    #instalar-tab:hover, #generar-tab:hover, #gestionar-tab:hover {
+        color: #0d6efd !important;
+        background-color: #e9ecef !important;
+        border-color: #dee2e6 !important;
+    }
+    
+    #instalar-tab.active, #generar-tab.active, #gestionar-tab.active {
+        color: white !important;
+        background-color: #0d6efd !important;
+        border-color: #0d6efd !important;
+    }
+    
+    /* Forzar visibilidad de todos los elementos */
+    .nav-link, .btn, .card, .badge {
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+</style>
+
+<script src="{{ url_for('static', filename='js/system_detection.js') }}"></script>
+<script>
+    // Variables globales
+    let selectedOS = null;
+    let selectedArch = null;
+    let downloadInProgress = false;
+    let agentes = [];
+
+    // Inicializar página
+    document.addEventListener('DOMContentLoaded', function() {
+        initializePage();
+    });
+
+    function initializePage() {
+        // Configurar event listeners
+        setupEventListeners();
+        
+        // Detectar sistema automáticamente
+        detectSystem();
+        
+        // Cargar agentes
+        cargarAgentes();
+        
+        // Mostrar la primera pestaña por defecto
+        showTab('instalar');
+    }
+
+    function setupEventListeners() {
+        // Selección de sistema operativo
+        document.querySelectorAll('.system-card').forEach(card => {
+            card.addEventListener('click', function() {
+                selectOS(this);
+            });
+        });
+
+        // Botón de descarga
+        document.getElementById('download-installer').addEventListener('click', function() {
+            downloadInstaller();
+        });
+
+        // Botón de actualizar estado
+        document.getElementById('refresh-status').addEventListener('click', function() {
+            refreshStatus();
+        });
+
+        // Botón de cancelar descarga
+        document.getElementById('cancel-download').addEventListener('click', function() {
+            cancelDownload();
+        });
+
+        // Formulario de generar instalador
+        document.getElementById('generarInstaladorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            generarInstalador();
+        });
+    }
+
+    function detectSystem() {
+        // Detectar sistema operativo básico
+        const userAgent = navigator.userAgent.toLowerCase();
+        let os = 'unknown';
+        let arch = 'x64';
+        
+        if (userAgent.includes('windows')) {
+            os = 'windows';
+        } else if (userAgent.includes('linux')) {
+            os = 'linux';
+        } else if (userAgent.includes('mac')) {
+            os = 'macos';
+        }
+        
+        // Detectar arquitectura
+        if (navigator.platform.includes('64')) {
+            arch = 'x64';
+        } else {
+            arch = 'x86';
+        }
+        
+        const systemInfo = {
+            os: os,
+            arch: arch,
+            browser: navigator.userAgent.split(' ').pop(),
+            capabilities: {
+                webGL: !!window.WebGLRenderingContext
+            }
+        };
+        
+        displaySystemInfo(systemInfo);
+        
+        // Auto-seleccionar si es compatible
+        if (isCompatibleOS(systemInfo.os)) {
+            autoSelectOS(systemInfo.os, systemInfo.arch);
+        }
+        
+        // Verificar estado del agente
+        checkAgentStatus();
+    }
+
+    function displaySystemInfo(systemInfo) {
+        const systemInfoDiv = document.getElementById('system-info');
+        systemInfoDiv.innerHTML = `
+            <div class="row">
+                <div class="col-6">
+                    <strong>Sistema Operativo:</strong><br>
+                    <span class="badge bg-primary">${systemInfo.os}</span>
+                </div>
+                <div class="col-6">
+                    <strong>Arquitectura:</strong><br>
+                    <span class="badge bg-info">${systemInfo.arch}</span>
+                </div>
+            </div>
+            <div class="row mt-2">
+                <div class="col-6">
+                    <strong>Navegador:</strong><br>
+                    <span class="badge bg-secondary">${systemInfo.browser}</span>
+                </div>
+                <div class="col-6">
+                    <strong>WebGL:</strong><br>
+                    <span class="badge ${systemInfo.capabilities.webGL ? 'bg-success' : 'bg-danger'}">
+                        ${systemInfo.capabilities.webGL ? 'Sí' : 'No'}
+                    </span>
+                </div>
+            </div>
+        `;
+    }
+
+    function isCompatibleOS(os) {
+        return ['windows', 'linux', 'macos'].includes(os);
+    }
+
+    function autoSelectOS(os, arch) {
+        const card = document.querySelector(`[data-os="${os}"][data-arch="${arch}"]`);
+        if (card) {
+            selectOS(card);
+        }
+    }
+
+    function selectOS(card) {
+        // Deseleccionar todas las tarjetas
+        document.querySelectorAll('.system-card').forEach(c => {
+            c.classList.remove('selected');
+        });
+
+        // Seleccionar la tarjeta actual
+        card.classList.add('selected');
+        
+        // Obtener información del sistema seleccionado
+        selectedOS = card.dataset.os;
+        selectedArch = card.dataset.arch;
+        
+        // Habilitar botón de descarga
+        document.getElementById('download-installer').disabled = false;
+        
+        // Mostrar instrucciones
+        showInstallationInstructions(selectedOS, selectedArch);
+    }
+
+    function showInstallationInstructions(os, arch) {
+        const instructionsDiv = document.getElementById('installation-instructions');
+        const contentDiv = document.getElementById('instructions-content');
+        
+        let instructions = '';
+        
+        switch (os) {
+            case 'windows':
+                instructions = `
+                    <h6>Instrucciones para Windows:</h6>
+                    <ol>
+                        <li>Descargue el instalador ejecutable (.exe)</li>
+                        <li>Haga clic derecho en el archivo y seleccione "Ejecutar como administrador"</li>
+                        <li>Siga las instrucciones del instalador</li>
+                        <li>El agente se iniciará automáticamente al arrancar el sistema</li>
+                    </ol>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>
+                        <strong>Importante:</strong> Se requieren permisos de administrador para acceder a discos físicos.
+                    </div>
+                `;
+                break;
+            case 'linux':
+                instructions = `
+                    <h6>Instrucciones para Linux:</h6>
+                    <ol>
+                        <li>Descargue el script de instalación (.sh)</li>
+                        <li>Haga el archivo ejecutable: <code>chmod +x forensic_agent_linux.sh</code></li>
+                        <li>Ejecute como root: <code>sudo ./forensic_agent_linux.sh</code></li>
+                        <li>El agente se iniciará automáticamente al arrancar el sistema</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Nota:</strong> Se instalarán automáticamente las dependencias del sistema (smartmontools, libewf-tools).
+                    </div>
+                `;
+                break;
+            case 'macos':
+                instructions = `
+                    <h6>Instrucciones para macOS:</h6>
+                    <ol>
+                        <li>Descargue el script de instalación (.sh)</li>
+                        <li>Haga el archivo ejecutable: <code>chmod +x forensic_agent_macos.sh</code></li>
+                        <li>Ejecute como administrador: <code>sudo ./forensic_agent_macos.sh</code></li>
+                        <li>El agente se iniciará automáticamente al arrancar el sistema</li>
+                    </ol>
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Nota:</strong> Se requiere Homebrew para instalar las dependencias del sistema.
+                    </div>
+                `;
+                break;
+        }
+        
+        contentDiv.innerHTML = instructions;
+        instructionsDiv.style.display = 'block';
+    }
+
+    async function checkAgentStatus() {
+        try {
+            const response = await fetch('http://localhost:5001/status', {
+                method: 'GET',
+                headers: {
+                    'Authorization': 'Bearer forensic_agent_2024',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displayAgentStatus(true, data.agent);
+            } else {
+                displayAgentStatus(false, null);
+            }
+        } catch (error) {
+            console.log('Agente local no disponible:', error.message);
+            displayAgentStatus(false, null);
+        }
+    }
+
+    function displayAgentStatus(connected, agentData) {
+        const agentStatusDiv = document.getElementById('agent-status');
+        
+        if (connected && agentData) {
+            agentStatusDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <h6><i class="fas fa-check-circle me-2"></i>Agente Conectado</h6>
+                    <p class="mb-1"><strong>Estado:</strong> ${agentData.status}</p>
+                    <p class="mb-1"><strong>Versión:</strong> ${agentData.version}</p>
+                    <p class="mb-0"><strong>Formatos:</strong> ${Object.keys(agentData.available_formats || {}).join(', ')}</p>
+                </div>
+            `;
+        } else {
+            agentStatusDiv.innerHTML = `
+                <div class="alert alert-warning">
+                    <h6><i class="fas fa-exclamation-triangle me-2"></i>Agente No Conectado</h6>
+                    <p class="mb-0">Descargue e instale el agente para su sistema</p>
+                </div>
+            `;
+        }
+    }
+
+    async function downloadInstaller() {
+        if (!selectedOS || !selectedArch) {
+            alert('Por favor, seleccione un sistema operativo');
+            return;
+        }
+
+        if (downloadInProgress) {
+            return;
+        }
+
+        downloadInProgress = true;
+        
+        // Mostrar progreso
+        document.getElementById('installer-progress').style.display = 'block';
+        document.getElementById('download-installer').disabled = true;
+        document.getElementById('cancel-download').style.display = 'inline-block';
+
+        try {
+            // Simular progreso
+            simulateDownloadProgress();
+
+            // Generar instalador
+            const response = await fetch('/api/installer-agente/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin', // Incluir cookies de sesión
+                body: JSON.stringify({
+                    user_id: '{{ current_user.id }}',
+                    server_url: '{{ request.url_root }}',
+                    token: 'test_token_123'
+                })
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                // Crear enlace de descarga
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `AgenteForense_${selectedOS}_${selectedArch}.zip`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Limpiar URL
+                window.URL.revokeObjectURL(url);
+                
+                // Mostrar mensaje de éxito
+                showSuccessMessage();
+            } else {
+                throw new Error(`Error descargando instalador: ${response.statusText}`);
+            }
+        } catch (error) {
+            console.error('Error descargando instalador:', error);
+            showErrorMessage(error.message);
+        } finally {
+            downloadInProgress = false;
+            document.getElementById('installer-progress').style.display = 'none';
+            document.getElementById('download-installer').disabled = false;
+            document.getElementById('cancel-download').style.display = 'none';
+        }
+    }
+
+    function simulateDownloadProgress() {
+        const progressBar = document.getElementById('download-progress');
+        const statusText = document.getElementById('download-status');
+        let progress = 0;
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 15;
+            if (progress > 100) progress = 100;
+            
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress < 30) {
+                statusText.textContent = 'Preparando instalador...';
+            } else if (progress < 60) {
+                statusText.textContent = 'Generando archivos...';
+            } else if (progress < 90) {
+                statusText.textContent = 'Comprimiendo archivos...';
+            } else {
+                statusText.textContent = 'Finalizando descarga...';
+            }
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+            }
+        }, 200);
+    }
+
+    function cancelDownload() {
+        downloadInProgress = false;
+        document.getElementById('installer-progress').style.display = 'none';
+        document.getElementById('download-installer').disabled = false;
+        document.getElementById('cancel-download').style.display = 'none';
+    }
+
+    function showSuccessMessage() {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-success alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-check-circle me-2"></i>
+            <strong>¡Instalador descargado exitosamente!</strong>
+            <p class="mb-0">Ejecute el instalador siguiendo las instrucciones mostradas arriba.</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+    }
+
+    function showErrorMessage(message) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = 'alert alert-danger alert-dismissible fade show';
+        alertDiv.innerHTML = `
+            <i class="fas fa-exclamation-circle me-2"></i>
+            <strong>Error descargando instalador:</strong>
+            <p class="mb-0">${message}</p>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+    }
+
+    function refreshStatus() {
+        detectSystem();
+    }
+
+    // Funciones para generar instalador
+    function generarToken() {
+        const token = 'AGENTE_' + Math.random().toString(36).substr(2, 9).toUpperCase();
+        document.getElementById('token').value = token;
+    }
+
+    async function generarInstalador() {
+        const formData = new FormData(document.getElementById('generarInstaladorForm'));
+        const data = Object.fromEntries(formData.entries());
+        
+        // Mostrar progreso
+        document.getElementById('progresoGeneracion').style.display = 'block';
+        document.getElementById('generarBtn').disabled = true;
+        
+        // Simular progreso
+        simularProgreso();
+        
+        try {
+            const tipoInstalador = data.tipo_instalador;
+            const endpoint = tipoInstalador === 'exe' ? 
+                '/api/installer-agente/generate-exe' : 
+                '/api/installer-agente/generate';
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'same-origin', // Incluir cookies de sesión
+                body: JSON.stringify(data)
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                
+                // Crear enlace de descarga
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `Instalador_Agente_${data.user_id}_${tipoInstalador.toUpperCase()}.${tipoInstalador === 'exe' ? 'exe' : 'zip'}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Limpiar URL
+                window.URL.revokeObjectURL(url);
+                
+                // Mostrar mensaje de éxito
+                mostrarMensaje('Instalador generado y descargado exitosamente', 'success');
+            } else {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Error generando instalador');
+            }
+        } catch (error) {
+            console.error('Error generando instalador:', error);
+            mostrarMensaje('Error generando instalador: ' + error.message, 'danger');
+        } finally {
+            document.getElementById('progresoGeneracion').style.display = 'none';
+            document.getElementById('generarBtn').disabled = false;
+        }
+    }
+
+    function simularProgreso() {
+        const progressBar = document.getElementById('progresoBarra');
+        const statusText = document.getElementById('estadoGeneracion');
+        let progress = 0;
+
+        const interval = setInterval(() => {
+            progress += Math.random() * 20;
+            if (progress > 100) progress = 100;
+            
+            progressBar.style.width = `${progress}%`;
+            
+            if (progress < 30) {
+                statusText.textContent = 'Preparando archivos...';
+            } else if (progress < 60) {
+                statusText.textContent = 'Configurando instalador...';
+            } else if (progress < 90) {
+                statusText.textContent = 'Compilando instalador...';
+            } else {
+                statusText.textContent = 'Finalizando generación...';
+            }
+            
+            if (progress >= 100) {
+                clearInterval(interval);
+            }
+        }, 300);
+    }
+
+    function mostrarMensaje(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            <i class="fas fa-${tipo === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+    }
+
+    // Funciones para gestionar agentes
+    async function cargarAgentes() {
+        try {
+            const response = await fetch('/api/agentes');
+            const data = await response.json();
+            
+            if (data.success) {
+                agentes = data.agentes;
+                mostrarAgentes(agentes);
+            } else {
+                mostrarAlerta('Error cargando agentes: ' + data.error, 'danger');
+            }
+        } catch (error) {
+            console.error('Error cargando agentes:', error);
+            mostrarAlerta('Error de conexión al cargar agentes', 'danger');
+        }
+    }
+
+    function mostrarAgentes(agentes) {
+        const agentesList = document.getElementById('agentesList');
+        
+        if (agentes.length === 0) {
+            agentesList.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-robot fa-3x text-muted mb-3"></i>
+                    <h5 class="text-muted">No hay agentes registrados</h5>
+                    <p class="text-muted">Instale un agente para comenzar a trabajar</p>
+                </div>
+            `;
+            return;
+        }
+
+        let html = '<div class="row">';
+        
+        agentes.forEach(agente => {
+            const statusClass = agente.status === 'online' ? 'success' : 'secondary';
+            const statusIcon = agente.status === 'online' ? 'fa-check-circle' : 'fa-times-circle';
+            
+            html += `
+                <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <h6 class="card-title">${agente.name || 'Agente Forense'}</h6>
+                                <span class="badge bg-${statusClass}">
+                                    <i class="fas ${statusIcon} me-1"></i>${agente.status || 'Desconocido'}
+                                </span>
+                            </div>
+                            <p class="card-text small text-muted">
+                                <strong>ID:</strong> ${agente.id || 'N/A'}<br>
+                                <strong>Plataforma:</strong> ${agente.platform || 'N/A'}<br>
+                                <strong>Última conexión:</strong> ${agente.last_seen ? new Date(agente.last_seen).toLocaleString() : 'Nunca'}
+                            </p>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-sm btn-outline-primary" onclick="verDiscos('${agente.id}')">
+                                    <i class="fas fa-hdd me-1"></i>Ver Discos
+                                </button>
+                                <button class="btn btn-sm btn-outline-info" onclick="verDetalles('${agente.id}')">
+                                    <i class="fas fa-info me-1"></i>Detalles
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        html += '</div>';
+        agentesList.innerHTML = html;
+        
+        // Actualizar contadores
+        document.getElementById('totalAgentes').textContent = agentes.length;
+        document.getElementById('agentesOnline').textContent = agentes.filter(a => a.status === 'online').length;
+    }
+
+    function verDiscos(agentId) {
+        alert('Funcionalidad de ver discos en desarrollo para agente: ' + agentId);
+    }
+
+    function verDetalles(agentId) {
+        alert('Funcionalidad de detalles en desarrollo para agente: ' + agentId);
+    }
+
+    function mostrarAlerta(mensaje, tipo) {
+        const alertDiv = document.createElement('div');
+        alertDiv.className = `alert alert-${tipo} alert-dismissible fade show`;
+        alertDiv.innerHTML = `
+            ${mensaje}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.querySelector('main').insertBefore(alertDiv, document.querySelector('main').firstChild);
+    }
+
+    // Función para mostrar pestañas
+    function showTab(tabName) {
+        // Ocultar todas las pestañas
+        document.querySelectorAll('.tab-pane').forEach(tab => {
+            tab.classList.remove('show', 'active');
+        });
+        
+        // Desactivar todos los botones de pestaña
+        document.querySelectorAll('.nav-link').forEach(btn => {
+            btn.classList.remove('active');
+        });
+        
+        // Mostrar la pestaña seleccionada
+        const targetTab = document.getElementById(tabName);
+        const targetBtn = document.getElementById(tabName + '-tab');
+        
+        if (targetTab && targetBtn) {
+            targetTab.classList.add('show', 'active');
+            targetBtn.classList.add('active');
+        }
+    }
+</script>
+{% endblock %}
