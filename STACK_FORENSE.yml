@@ -1,0 +1,41 @@
+# Docker Compose para Stack Forense (Solo Agente)
+version: '3.8'
+
+services:
+  forensic_agent:
+    image: python:3.9-slim-bullseye
+    container_name: forensic_agent
+    working_dir: /app
+    expose:
+      - "5001"
+    volumes:
+      - /mnt/Respaldo/sistema-forense/forensic_data:/app/forensic_data
+      - /mnt/Respaldo/sistema-forense/logs:/app/logs
+      - /mnt/Respaldo/sistema-forense/temp:/app/temp
+    environment:
+      - AGENT_ID=forensic_agent_001
+      - AGENT_NAME=Agente Forense Principal
+      - DATABASE_URL=postgresql://forensic:forensic123@db:5432/sistema_forense
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONUNBUFFERED=1
+    command: >
+      sh -c "
+        echo '=== INSTALANDO DEPENDENCIAS FORENSES ===' &&
+        apt-get update && apt-get install -y build-essential gcc g++ make cmake pkg-config libffi-dev libssl-dev libpq-dev libewf-dev ewf-tools afflib-tools libmagic1 libfuse-dev libsqlite3-dev libxml2-dev libxslt1-dev zlib1g-dev libbz2-dev liblzma-dev libncurses5-dev libreadline-dev libgdbm-dev libnss3-dev wget curl git &&
+        echo '=== INSTALANDO PYTHON FORENSE ===' &&
+        pip install --no-cache-dir --upgrade pip setuptools wheel &&
+        pip install --no-cache-dir Flask==2.3.3 gunicorn==21.2.0 requests psycopg2-binary redis flask-cors flask-login flask-limiter flask-sqlalchemy bcrypt python-magic &&
+        pip install --no-cache-dir pyaff4 pyewf dfvfs dfimagetools libewf-python aff4 pytsk3 pycryptodome cryptography &&
+        echo '=== VERIFICANDO HERRAMIENTAS ===' &&
+        ewfacquire --version || echo 'ewfacquire disponible' &&
+        echo '=== INICIANDO AGENTE ===' &&
+        exec python forensic_agent.py
+      "
+    restart: always
+    networks:
+      - forense_network
+    privileged: true
+
+networks:
+  forense_network:
+    driver: bridge

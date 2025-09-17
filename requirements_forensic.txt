@@ -1,0 +1,29 @@
+# Dependencias específicas para el stack forense con Python 3.9
+Flask==2.3.3
+gunicorn==21.2.0
+requests==2.31.0
+psycopg2-binary==2.9.7
+redis==4.6.0
+flask-cors==4.0.0
+flask-login==0.6.3
+flask-limiter==3.5.0
+flask-sqlalchemy==3.0.5
+bcrypt==4.0.1
+python-magic==0.4.27
+
+# Herramientas forenses específicas
+pyaff4==0.30.0
+pyewf==20210419
+dfvfs==20231231
+dfimagetools==20231231
+libewf-python==20140608
+aff4==0.30.0
+pytsk3==20210419
+pycryptodome==3.19.0
+cryptography==41.0.7
+
+# Utilidades adicionales
+hashlib2==1.3.1
+pillow==10.1.0
+numpy==1.24.3
+pandas==2.0.3

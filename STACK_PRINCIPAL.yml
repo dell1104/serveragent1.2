@@ -1,0 +1,110 @@
+# Docker Compose para Stack Principal (app + db + redis + nginx)
+version: '3.8'
+
+services:
+  app:
+    image: python:3.13-slim-bookworm
+    container_name: sistema_forense_app
+    working_dir: /app
+    expose:
+      - "5000"
+    volumes:
+      - /mnt/Respaldo/sistema-forense:/app
+      - /mnt/Respaldo/sistema-forense/casos_data:/app/casos_data
+      - /mnt/Respaldo/sistema-forense/logs:/app/logs
+      - /mnt/Respaldo/sistema-forense/static/uploads:/app/static/uploads
+      - /mnt/Respaldo/sistema-forense/agentes_data:/app/agentes_data
+      - /mnt/Respaldo/sistema-forense/json:/app/json
+    environment:
+      - FLASK_ENV=production
+      - FLASK_APP=app.py
+      - DATABASE_URL=postgresql://forensic:forensic123@db:5432/sistema_forense
+      - REDIS_URL=redis://redis:6379/0
+      - PYTHONUNBUFFERED=1
+    command: >
+      sh -c "
+        echo '=== INSTALANDO DEPENDENCIAS DEL SISTEMA ===' &&
+        apt-get update && apt-get install -y build-essential libffi-dev libpq-dev libewf-dev ewf-tools afflib-tools libmagic1 wget python3-dev &&
+        echo '=== ACTUALIZANDO PIP ===' &&
+        pip install --no-cache-dir --upgrade pip setuptools wheel &&
+        echo '=== INSTALANDO DEPENDENCIAS PYTHON BÁSICAS ===' &&
+        pip install --no-cache-dir Flask==2.3.3 gunicorn==21.2.0 requests psycopg2-binary redis flask-cors flask-login flask-limiter flask-sqlalchemy bcrypt python-magic &&
+        echo '=== VERIFICANDO HERRAMIENTAS FORENSES ===' &&
+        ewfacquire --version || echo 'ewfacquire disponible' &&
+        echo '=== VERIFICANDO GUNICORN ===' &&
+        which gunicorn && gunicorn --version &&
+        echo '=== INICIANDO CON GUNICORN ===' &&
+        exec gunicorn -b 0.0.0.0:5000 app:app
+      "
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+    networks:
+      - forense_network
+
+  # Base de datos PostgreSQL
+  db:
+    image: postgres:15-alpine
+    container_name: sistema_forense_db
+    environment:
+      - POSTGRES_DB=sistema_forense
+      - POSTGRES_USER=forensic
+      - POSTGRES_PASSWORD=forensic123
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - /mnt/Respaldo/sistema-forense/init_db.sql:/docker-entrypoint-initdb.d/init_db.sql
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+    networks:
+      - forense_network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U forensic -d sistema_forense"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis
+  redis:
+    image: redis:7-alpine
+    container_name: sistema_forense_redis
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    networks:
+      - forense_network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Nginx como proxy reverso
+  nginx:
+    image: nginx:alpine
+    container_name: sistema_forense_nginx
+    ports:
+      - "8080:80"
+      - "8443:443"
+    volumes:
+      - /mnt/Respaldo/sistema-forense/nginx-sin-forensic.conf:/etc/nginx/nginx.conf:ro
+      - /mnt/Respaldo/sistema-forense/static:/app/static:ro
+    depends_on:
+      - app
+    restart: always
+    networks:
+      - forense_network
+
+networks:
+  forense_network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
