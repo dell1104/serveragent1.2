@@ -4,7 +4,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 import bcrypt
 import datetime
 from models import db, Usuario
-from utils_package.logging_system import SistemaLogging
+from utils_package.logging_system import SistemaLogging, log_evento
 
 auth_bp = Blueprint('auth', __name__)
 
